@@ -29,8 +29,9 @@ async def health_check() -> Dict[str, Any]:
         "version": VERSION,
         "timestamp": datetime.now().isoformat(),
         "components": {
-            "agents": 7,
-            "tools": 2
+            "adk_agents": 7,  # 3 LlmAgents + 4 BaseAgents
+            "workflow_steps": 5,  # Sequential workflow with 5 steps
+            "tools": 7  # PilgrimageWorkflow + 6 utility tools
         }
     }
 
@@ -79,22 +80,22 @@ async def readiness_check() -> Dict[str, Any]:
 
 
 async def _check_agents() -> bool:
-    """Check if agents can be imported and initialized."""
+    """Check if ADK agents can be imported and initialized."""
     try:
-        from agents import (
-            OrchestratorAgent,
-            SearchAgent,
-            WeatherAgent,
-            FilterAgent,
-            POIAgent,
-            RouteAgent,
-            TransportAgent
-        )
-        # Quick instantiation check
-        _ = OrchestratorAgent()
+        from adk_agents.seichijunrei_bot.agent import root_agent
+        from adk_agents.seichijunrei_bot.workflows.pilgrimage_workflow import pilgrimage_workflow
+
+        # Verify root agent is configured
+        assert root_agent.name == "seichijunrei_bot"
+        assert len(root_agent.tools) == 7
+
+        # Verify workflow is configured
+        assert pilgrimage_workflow.name == "PilgrimageWorkflow"
+        assert len(pilgrimage_workflow.sub_agents) == 5
+
         return True
     except Exception as e:
-        logger.error("Agent check failed", error=str(e))
+        logger.error("ADK agent check failed", error=str(e))
         return False
 
 

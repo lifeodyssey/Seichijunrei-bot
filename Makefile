@@ -45,7 +45,7 @@ run:
 	uv run adk run adk_agents/seichijunrei_bot
 
 web:
-	uv run adk web adk_agents
+	uv run adk web adk_agents/seichijunrei_bot
 
 # Testing
 test:

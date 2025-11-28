@@ -218,6 +218,14 @@ class PilgrimageSession(BaseModel):
     points: List[Point] = Field(default_factory=list)
     route: Optional[Route] = None
     weather: Optional[Weather] = None
+
+    # NEW: Bangumi-specific fields for direct bangumi search
+    bangumi_id: Optional[int] = None
+    bangumi_name: Optional[str] = None
+    bangumi_confidence: Optional[float] = None
+    user_location: Optional[str] = None
+    user_coordinates: Optional[Coordinates] = None
+
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 

@@ -41,7 +41,9 @@ parallel_enrichment = ParallelAgent(
 
 # Main Sequential workflow
 pilgrimage_workflow = SequentialAgent(
-    name="PilgrimageWorkflow",
+    # This name becomes the ADK tool name via AgentTool; keep it
+    # aligned with root_agent.instructions as the canonical entry point.
+    name="plan_pilgrimage_workflow",
     description="完整的圣地巡礼规划工作流（提取 → 搜索 → 点位 → 增强 → 交通优化）",
     sub_agents=[
         extraction_agent,       # Step 1: extract bangumi + location
@@ -51,4 +53,3 @@ pilgrimage_workflow = SequentialAgent(
         transport_agent,        # Step 5: optimize transport & finalize plan
     ],
 )
-

@@ -55,6 +55,10 @@ outputs/
 *.html
 !templates/*.html
 
+# Test outputs
+test_results.json
+*.evalset.json
+
 # Secrets
 .env.local
 .env.production

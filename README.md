@@ -115,59 +115,75 @@ Seichijunrei Bot 通过智能多Agent系统解决了这些痛点，让你的圣�
 
 ## 项目架构
 
-### Multi-Agent系统架构
+### ADK Sequential Agent 架构 (2024年11月完成迁移)
+
+本项目采用 Google ADK (Agent Development Kit) 框架，使用 **SequentialAgent** 和 **ParallelAgent** 实现确定性的工作流编排。
 
 ```
-┌─────────────────────────────────────┐
-│   Orchestrator Agent (主控Agent)      │
-│   - 管理整体流程                       │
-│   - 协调各子Agent                      │
-│   - 维护会话状态                       │
-└──────────┬──────────────────────────┘
-           │
-           ├──→ [并行] SearchAgent          搜索周边番剧
-           ├──→ [并行] WeatherAgent         查询天气信息
-           │
-           ├──→ FilterAgent                询问用户偏好
-           │
-           ├──→ RouteAgent                 计算最优路线
-           │
-           ├──→ [并行] TransportAgent       查询交通方式
-           ├──→ [并行] POIAgent             查询营业时间
-           │
-           ├──→ MapGeneratorTool           生成可视化地图
-           └──→ PDFGeneratorTool           生成巡礼手册PDF
+┌─────────────────────────────────────────────────────┐
+│  Root Agent (LlmAgent)                              │
+│  - Model: gemini-2.0-flash                          │
+│  - 理解用户意图，调用工作流                             │
+│  - Tool: plan_pilgrimage_workflow                  │
+└────────────────┬────────────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────────────┐
+│  PilgrimageWorkflow (SequentialAgent)               │
+│                                                     │
+│  Step 1: ExtractionAgent (LlmAgent)                │
+│         提取番剧名 + 位置                              │
+│         ↓                                           │
+│  Step 2: ParallelSearch (ParallelAgent)            │
+│         ├─ BangumiSearchAgent (LlmAgent)           │
+│         └─ LocationSearchAgent (LlmAgent)          │
+│         ↓                                           │
+│  Step 3: PointsSearchAgent (BaseAgent)             │
+│         获取圣地点位                                   │
+│         ↓                                           │
+│  Step 4: ParallelEnrichment (ParallelAgent)        │
+│         ├─ WeatherAgent (BaseAgent)                │
+│         └─ RouteOptimizationAgent (BaseAgent)      │
+│         ↓                                           │
+│  Step 5: TransportAgent (BaseAgent)                │
+│         优化交通方式，输出 final_plan                  │
+└─────────────────────────────────────────────────────┘
 ```
 
-**Agent职责**:
+**ADK Agents (7个):**
 
-| Agent | 职责 | 执行方式 |
-|-------|------|---------|
-| Orchestrator | 主控，协调所有Agent | - |
-| SearchAgent | 搜索周边番剧和圣地 | 并行 |
-| WeatherAgent | 查询天气信息 | 并行 |
-| FilterAgent | 询问用户偏好，过滤番剧 | 顺序 |
-| RouteAgent | 计算最优路线（最近邻算法） | 顺序 |
-| TransportAgent | 查询每段路线的交通方式 | 并行 |
-| POIAgent | 查询圣地营业时间 | 并行 |
+| Agent | 类型 | 职责 | 状态通信 |
+|-------|------|------|---------|
+| ExtractionAgent | LlmAgent | 从用户查询提取番剧名和位置 | output_key: "extraction_result" |
+| BangumiSearchAgent | LlmAgent | 搜索番剧，返回 bangumi_id | ctx.session.state |
+| LocationSearchAgent | LlmAgent | 搜索车站坐标 | ctx.session.state |
+| PointsSearchAgent | BaseAgent | 获取圣地点位并过滤 | ctx.session.state["points"] |
+| WeatherAgent | BaseAgent | 查询天气信息 | ctx.session.state["weather"] |
+| RouteOptimizationAgent | BaseAgent | Google Maps 路线优化 | ctx.session.state["route"] |
+| TransportAgent | BaseAgent | 优化交通方式 | ctx.session.state["final_plan"] |
 
-**自定义工具**:
+**FunctionTools (6个):**
 
-| 工具 | 功能 |
+| Tool | 功能 |
 |------|------|
-| MapGeneratorTool | 生成交互式HTML地图 |
-| PDFGeneratorTool | 生成可打印的巡礼手册PDF |
+| plan_pilgrimage_workflow | 主工作流入口 (AgentTool) |
+| search_bangumi_subjects | 搜索番剧 (Bangumi API) |
+| get_anitabi_points | 获取圣地点位 (Anitabi API) |
+| search_anitabi_bangumi_near_station | 搜索车站附近番剧 |
+| generate_map | 生成交互式HTML地图 |
+| generate_pdf | 生成PDF巡礼手册 |
 
-### 技术栈（待确定）
+### 技术栈
 
-- **编程语言**: Python 3.10+
-- **Agent框架**: TBD (Google ADK / LangGraph / CrewAI)
-- **LLM模型**: Gemini 1.5 Pro/Flash
+- **编程语言**: Python 3.13+
+- **Agent框架**: Google ADK (Agent Development Kit)
+- **LLM模型**: Gemini 2.0 Flash
 - **数据源**:
-  - [Anitabi API](https://github.com/anitabi/anitabi.cn-document) (圣地数据)
-  - Google Maps APIs (地图、导航、地理编码)
-  - 天气API (待定)
-- **部署平台**: Google Agent Engine / Cloud Run
+  - [Anitabi API](https://github.com/anitabi/anitabi.cn-document) - 圣地数据
+  - [Bangumi API](https://bangumi.github.io/api/) - 番剧信息
+  - Google Maps APIs - 地图、导航、地理编码
+  - Open-Meteo API - 天气信息
+- **部署平台**: Google Agent Engine
+- **包管理**: uv (现代化 Python 包管理)
 
 ---
 
@@ -235,30 +251,62 @@ Seichijunrei Bot 通过智能多Agent系统解决了这些痛点，让你的圣�
 ## 项目结构
 
 ```
-seichijunrei-bot/
-├── README.md                 # 项目说明（本文件）
-├── SPEC.md                   # 详细技术规格文档
-├── requirement.md            # 课程要求说明
-├── .gitignore                # Git忽略配置
-├── agents/                   # Agent模块目录
-│   ├── orchestrator.py       # 主控Agent
-│   ├── search_agent.py       # 搜索Agent
-│   ├── filter_agent.py       # 过滤Agent
-│   ├── route_agent.py        # 路线Agent
-│   ├── transport_agent.py    # 交通Agent
-│   ├── weather_agent.py      # 天气Agent
-│   └── poi_agent.py          # 营业时间Agent
-├── tools/                    # 自定义工具目录
-│   ├── map_generator.py      # 地图生成工具
-│   └── pdf_generator.py      # PDF生成工具
-├── utils/                    # 工具函数目录
-│   ├── anitabi_client.py     # Anitabi API客户端
-│   ├── gmaps_client.py       # Google Maps客户端
-│   └── geo_utils.py          # 地理计算工具
-├── templates/                # 模板目录
-│   └── pilgrimage_guide.html # PDF模板
-├── outputs/                  # 输出目录（地图、PDF）
-└── docs/                     # 文档目录
+Seichijunrei/
+├── README.md                    # 项目说明（本文件）
+├── SPEC.md                      # 技术规格文档
+├── pyproject.toml               # uv 项目配置
+├── Makefile                     # 便捷命令
+│
+├── adk_agents/                  # ADK Agent 定义
+│   └── seichijunrei_bot/
+│       ├── agent.py             # Root agent 入口
+│       ├── tools.py             # FunctionTool 定义
+│       ├── agents/              # 7个 ADK agents
+│       │   ├── extraction_agent.py
+│       │   ├── bangumi_search_agent.py
+│       │   ├── location_search_agent.py
+│       │   ├── points_search_agent.py
+│       │   ├── weather_agent.py
+│       │   ├── route_agent.py
+│       │   └── transport_agent.py
+│       └── workflows/
+│           └── pilgrimage_workflow.py  # SequentialAgent 工作流
+│
+├── clients/                     # API 客户端（纯HTTP）
+│   ├── anitabi.py               # Anitabi API
+│   ├── bangumi.py               # Bangumi API
+│   ├── google_maps.py           # Google Maps API
+│   └── weather.py               # Weather API
+│
+├── domain/                      # 领域模型
+│   ├── entities.py              # Pydantic 实体
+│   └── llm_schemas.py           # LLM 输入输出 Schema
+│
+├── services/                    # 基础设施服务
+│   ├── cache.py                 # 缓存层
+│   ├── retry.py                 # 重试装饰器
+│   └── session.py               # Session 管理
+│
+├── tools/                       # 自定义工具
+│   ├── map_generator.py         # Folium 地图生成
+│   └── pdf_generator.py         # Playwright PDF生成
+│
+├── utils/                       # 工具函数
+│   ├── logger.py                # Structlog 日志
+│   └── llm.py                   # LLM 辅助函数
+│
+├── templates/                   # Jinja2 模板
+│   ├── map.html
+│   └── pdf.html
+│
+├── tests/                       # 测试套件
+│   ├── unit/                    # 单元测试 (288个)
+│   └── integration/             # 集成测试
+│
+└── docs/                        # 文档
+    ├── api/                     # API 文档
+    ├── architecture.md          # 架构说明
+    └── archive/                 # 历史文档
 ```
 
 ---

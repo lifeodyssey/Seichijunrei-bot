@@ -21,7 +21,8 @@ class Settings(BaseSettings):
 
     # API Keys
     google_maps_api_key: str = Field(default="", description="Google Maps API key")
-    gemini_api_key: str = Field(default="", description="Gemini API key")
+    # Kept for backwards compatibility but no longer required by Python code.
+    gemini_api_key: str = Field(default="", description="Gemini API key (legacy, optional)")
     weather_api_key: str = Field(default="", description="Weather API key")
 
     # API Endpoints
@@ -95,8 +96,6 @@ class Settings(BaseSettings):
         missing = []
         if not self.google_maps_api_key:
             missing.append("GOOGLE_MAPS_API_KEY")
-        if not self.gemini_api_key:
-            missing.append("GEMINI_API_KEY")
         if self.is_production and not self.weather_api_key:
             missing.append("WEATHER_API_KEY")
         return missing

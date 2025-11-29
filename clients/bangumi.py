@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 
 class BangumiClient(BaseHTTPClient):
     """
-    Client for Bangumi API (番組計画 API).
+    Client for the Bangumi metadata API.
 
     Provides access to anime/manga metadata including:
     - Subject search by keyword
@@ -97,9 +97,9 @@ class BangumiClient(BaseHTTPClient):
 
         Example:
             >>> client = BangumiClient()
-            >>> results = await client.search_subject("你的名字")
+            >>> results = await client.search_subject("Your Name")
             >>> print(results[0]["name_cn"])
-            '你的名字。'
+            'Your Name.'
         """
         # Validate parameters
         if not keyword or not keyword.strip():
@@ -173,7 +173,7 @@ class BangumiClient(BaseHTTPClient):
             >>> client = BangumiClient()
             >>> subject = await client.get_subject(160209)
             >>> print(subject["name"])
-            '君の名は。'
+            'Kimi no Na wa.'
         """
         if subject_id <= 0:
             raise ValueError("subject_id must be positive")

@@ -29,15 +29,25 @@ class PointsSearchAgent(BaseAgent):
     async def _run_async_impl(self, ctx):  # type: ignore[override]
         state: Dict[str, Any] = ctx.session.state
 
-        bangumi_id = state.get("bangumi_id")
-        user_coordinates_data = state.get("user_coordinates")
+        # With Pydantic output_schema, state values are now properly typed dicts
+        bangumi_result = state.get("bangumi_result", {})
+        location_result = state.get("location_result", {})
+
+        bangumi_id = bangumi_result.get("bangumi_id")
+        user_coordinates_data = location_result.get("user_coordinates")
         max_radius_km = state.get("max_radius_km", 50.0)
 
-        if bangumi_id is None or not isinstance(bangumi_id, int):
-            raise ValueError("PointsSearchAgent requires integer bangumi_id in session.state")
+        if not bangumi_id or not isinstance(bangumi_id, int):
+            raise ValueError(
+                f"PointsSearchAgent requires valid bangumi_id. "
+                f"Got: {bangumi_id} (type: {type(bangumi_id).__name__})"
+            )
 
         if not isinstance(user_coordinates_data, dict):
-            raise ValueError("PointsSearchAgent requires user_coordinates dict in session.state")
+            raise ValueError(
+                f"PointsSearchAgent requires user_coordinates dict. "
+                f"Got: {type(user_coordinates_data).__name__}"
+            )
 
         try:
             user_coords = Coordinates(**user_coordinates_data)
@@ -103,12 +113,10 @@ class PointsSearchAgent(BaseAgent):
             max_radius_km=max_radius_km,
         )
 
+        # BaseAgent Event content must be None or specific ADK types, not arbitrary dict
         yield Event(
             author=self.name,
-            content={
-                "points_count": len(points_data),
-                "max_radius_km": max_radius_km,
-            },
+            content=None,
             actions=EventActions(escalate=True),
         )
 

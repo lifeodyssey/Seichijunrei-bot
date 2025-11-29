@@ -42,11 +42,11 @@ Populated by `ExtractionAgent`.
 
 - `bangumi_name: str | None`
   - Canonicalized anime title extracted from `user_query`.
-  - Example: `"你的名字"` or `"君の名は。"`.
+  - Example: `"Your Name"` or `"Kimi no Na wa."`.
 
 - `location: str | None`
   - Human-readable location or station name extracted from `user_query`.
-  - Example: `"新宿"`, `"秋叶原站"`.
+  - Example: `"Shinjuku"`, `"Akihabara Station"`.
 
 - `extraction_meta: dict`
   - Optional diagnostic information, e.g.:
@@ -314,7 +314,7 @@ Each yielded event MUST have:
   - A *partial* state update. Keys here will be merged into
     `ctx.session.state` using `state.update(content)`.
   - Example from `ExtractionAgent`:
-    - `{"bangumi_name": "你的名字", "location": "新宿"}`
+    - `{"bangumi_name": "Your Name", "location": "Shinjuku"}`
 
 - `actions: EventActions`
   - At minimum, `EventActions(escalate: bool)` is used.
@@ -358,15 +358,15 @@ Each yielded event MUST have:
 
 Example user query:
 
-> "我在新宿想去你的名字的圣地"
+> "I am at Shinjuku and want to visit Your Name locations."
 
 1. **Root LlmAgent** initializes:
-   - `user_query = "我在新宿想去你的名字的圣地"`
+   - `user_query = "I am at Shinjuku and want to visit Your Name locations."`
    - `session_id = "..."`
 
 2. **ExtractionAgent**:
    - Reads `user_query`.
-   - Writes `bangumi_name = "你的名字"`, `location = "新宿"`.
+   - Writes `bangumi_name = "Your Name"`, `location = "Shinjuku"`.
 
 3. **Parallel Search** (`BangumiSearchAgent` + `LocationSearchAgent`):
    - Bangumi side writes `bangumi_id`, titles, confidence.
@@ -387,4 +387,3 @@ Example user query:
 At the end of the Sequential workflow, `ctx.session.state` contains enough
 information for the root LlmAgent to generate a rich, user-facing answer and
 for downstream tools (map/PDF) to work without needing the legacy orchestrator.
-

@@ -134,11 +134,10 @@ async def generate_pdf(session_data: dict, map_image_path: Optional[str] = None)
 # === ADK Tools Definition ===
 # (Bangumi & Anitabi query functions are imported from adk_agents.seichijunrei_bot.tools)
 
-# Wrap the SequentialAgent workflow as an AgentTool.
-# NOTE: The exposed tool name comes from the underlying agent's `name`
-# (see `pilgrimage_workflow` definition). That agent MUST keep the
-# name `plan_pilgrimage_workflow` to stay consistent with instructions.
-pilgrimage_workflow_tool = agent_tool.AgentTool(agent=pilgrimage_workflow)
+# ADK Best Practice: Use SequentialAgent directly as root agent instead of wrapping it in AgentTool
+# This ensures proper state propagation between sub-agents in the workflow.
+# The old approach (wrapping as AgentTool) caused state isolation issues where
+# sub-agent outputs were not accessible to downstream agents.
 
 # Utility tools for map and PDF generation
 generate_map_tool = FunctionTool(generate_map)
@@ -150,64 +149,9 @@ get_bangumi_tool = FunctionTool(get_bangumi_subject)
 get_anitabi_points_tool = FunctionTool(get_anitabi_points)
 search_anitabi_bangumi_tool = FunctionTool(search_anitabi_bangumi_near_station)
 
-
-# Define the root agent
-root_agent = Agent(
-    name="seichijunrei_bot",
-    model="gemini-2.0-flash",
-    description="""
-    Seichijunrei Bot (圣地巡礼机器人) - An AI-powered travel assistant for anime pilgrims.
-
-    This agent helps users plan pilgrimage routes to visit real-world locations
-    featured in anime. It can:
-    - Search for anime locations near a train station
-    - Check weather conditions for the visit
-    - Filter locations based on user preferences
-    - Optimize the visiting route
-    - Suggest transportation modes (walking vs transit)
-    - Generate interactive maps and PDF guides
-    """,
-    instruction="""
-    你是 Seichijunrei Bot (圣地巡礼机器人)，一个热情的动漫圣地巡礼旅行助手。
-
-    ## 核心能力
-
-    **完整路线规划 (推荐方式):**
-    - 工具: `plan_pilgrimage_workflow(request="用户的查询内容")`
-    - 用途: 当用户想规划巡礼路线时（包含番剧名或车站名）
-    - 示例: request="我在新宿想去你的名字的圣地" → 自动提取→搜索→天气→路线
-    - 输出: 包含路线、天气、交通方式的完整计划
-    - 重要: 参数名必须是 request，值为用户的原始查询文本
-
-    **探索模式 (浏览用):**
-    - `search_anitabi_bangumi_near_station(station_name)` - 查看车站附近的番剧
-    - `search_bangumi_subjects(keyword)` - 搜索番剧信息
-    - `get_anitabi_points(bangumi_id)` - 查看番剧的所有圣地
-
-    **生成输出:**
-    - `generate_map(session_data)` - 生成交互式地图
-    - `generate_pdf(session_data)` - 生成PDF手册
-    - 在规划完成后主动询问用户是否需要
-
-    ## 交互风格
-
-    - 热情友好，熟悉动漫文化
-    - 自然使用中日双语（如"新宿駅"）
-    - 清晰列出距离和时间
-    - 如遇问题，提供替代方案
-
-    优先使用 `plan_pilgrimage_workflow` 完成完整规划！
-    """,
-    tools=[
-        pilgrimage_workflow_tool,  # Main workflow (replaces old plan_pilgrimage*)
-        search_bangumi_tool,
-        get_bangumi_tool,
-        get_anitabi_points_tool,
-        search_anitabi_bangumi_tool,
-        generate_map_tool,
-        generate_pdf_tool,
-    ]
-)
+# Use the SequentialAgent workflow directly as the root agent
+# This is the ADK-recommended pattern for deterministic multi-step workflows
+root_agent = pilgrimage_workflow
 
 
 # Entry point for ADK CLI

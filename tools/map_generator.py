@@ -126,7 +126,7 @@ class MapGeneratorTool(BaseTool):
         """Add a special marker for the origin station."""
         popup_html = f"""
         <div style="font-family: Arial, sans-serif; min-width: 200px;">
-            <h4 style="margin: 0 0 8px 0; color: #2C3E50;">起点 / Origin</h4>
+            <h4 style="margin: 0 0 8px 0; color: #2C3E50;">Origin</h4>
             <p style="margin: 4px 0;">
                 <strong>🚉 {station.name}</strong>
             </p>
@@ -138,7 +138,7 @@ class MapGeneratorTool(BaseTool):
             location=[station.coordinates.latitude, station.coordinates.longitude],
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color="red", icon="home", prefix="fa"),
-            tooltip="起点 Origin"
+            tooltip="Origin"
         ).add_to(map_obj)
 
     def _add_point_markers(self, map_obj: folium.Map, session: PilgrimageSession):
@@ -184,14 +184,14 @@ class MapGeneratorTool(BaseTool):
             transport_info = f"""
             <p style="margin: 8px 0; padding: 8px; background: #ECF0F1; border-radius: 4px;">
                 {transport_icon} <strong>{segment.transport.mode.title()}</strong><br/>
-                {segment.transport.distance_meters}m, {segment.transport.duration_minutes}分钟
+                {segment.transport.distance_meters}m, {segment.transport.duration_minutes} min
             </p>
             """
 
         html = f"""
         <div style="font-family: Arial, sans-serif; min-width: 250px;">
             <div style="background: #3498DB; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
-                <h4 style="margin: 0;">景点 {order}</h4>
+                <h4 style="margin: 0;">Point {order}</h4>
             </div>
             <p style="margin: 8px 0;">
                 <strong style="font-size: 14px; color: #2C3E50;">{point.cn_name}</strong><br/>
@@ -199,7 +199,7 @@ class MapGeneratorTool(BaseTool):
             </p>
             <p style="margin: 8px 0; font-size: 13px;">
                 <strong>🎬 {point.bangumi_title}</strong><br/>
-                <span style="color: #7F8C8D;">第{point.episode}集 {point.time_formatted}</span>
+                <span style="color: #7F8C8D;">Episode {point.episode} {point.time_formatted}</span>
             </p>
             {transport_info}
         </div>
@@ -251,7 +251,7 @@ class MapGeneratorTool(BaseTool):
             color="#3498DB",
             weight=4,
             opacity=0.7,
-            popup="巡礼路线 Pilgrimage Route"
+            popup="Pilgrimage Route"
         ).add_to(map_obj)
 
     def _save_map(self, map_obj: folium.Map, session_id: str) -> Path:

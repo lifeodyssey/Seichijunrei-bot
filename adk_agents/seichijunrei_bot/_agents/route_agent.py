@@ -33,8 +33,11 @@ class RouteOptimizationAgent(BaseAgent):
     async def _run_async_impl(self, ctx):  # type: ignore[override]
         state: Dict[str, Any] = ctx.session.state
 
-        station_data = state.get("station")
-        user_coordinates_data = state.get("user_coordinates")
+        # With Pydantic output_schema, location_result is now a properly typed dict
+        location_result = state.get("location_result", {})
+        station_data = location_result.get("station")
+        user_coordinates_data = location_result.get("user_coordinates")
+
         points_data = state.get("points_filtered") or state.get("points") or []
 
         if not points_data:
@@ -55,7 +58,7 @@ class RouteOptimizationAgent(BaseAgent):
 
             origin = Station(
                 name="User Location",
-                coordinates=state["user_coordinates"],  # type: ignore[arg-type]
+                coordinates=user_coordinates_data,  # type: ignore[arg-type]
                 city="Unknown",
                 prefecture="Unknown",
             )
@@ -105,15 +108,10 @@ class RouteOptimizationAgent(BaseAgent):
             total_duration_min=route.total_duration_minutes,
         )
 
+        # BaseAgent Event content must be None or specific ADK types, not arbitrary dict
         yield Event(
             author=self.name,
-            content={
-                "route_summary": {
-                    "waypoints_count": len(points),
-                    "total_distance_km": route.total_distance_km,
-                    "total_duration_minutes": route.total_duration_minutes,
-                }
-            },
+            content=None,
             actions=EventActions(escalate=False),
         )
 

@@ -23,7 +23,7 @@ settings = get_settings()
 
 class AnitabiClient(BaseHTTPClient):
     """
-    Client for Anitabi API (圣地巡礼 API).
+    Client for the Anitabi anime pilgrimage API.
 
     Provides access to anime pilgrimage location data including:
     - Anime series (bangumi) near stations

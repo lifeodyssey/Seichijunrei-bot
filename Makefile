@@ -45,7 +45,7 @@ run:
 	uv run adk run adk_agents/seichijunrei_bot
 
 web:
-	uv run adk web adk_agents
+	@bash scripts/start_adk_web.sh
 
 # Testing
 test:

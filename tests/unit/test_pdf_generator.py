@@ -248,9 +248,9 @@ class TestPDFGeneratorTool:
         html = await pdf_generator._render_html(sample_session_with_weather)
 
         # Assert
-        assert "圣地巡礼指南" in html  # Title
+        assert "Anime Pilgrimage Guide" in html  # Title
         assert "Shinjuku Station" in html  # Station name
-        assert "总距离" in html  # Total distance label
+        assert "Total distance" in html  # Total distance label
 
     @pytest.mark.asyncio
     async def test_rendered_html_contains_itinerary(
@@ -261,7 +261,7 @@ class TestPDFGeneratorTool:
         html = await pdf_generator._render_html(sample_session_with_weather)
 
         # Assert
-        assert "行程安排" in html  # Itinerary title
+        assert "Itinerary" in html  # Itinerary title
         assert "新宿御苑" in html  # Point 1 CN name
         assert "Shinjuku Gyoen" in html  # Point 1 JP name
         assert "代代木公园" in html  # Point 2 CN name
@@ -275,7 +275,7 @@ class TestPDFGeneratorTool:
         html = await pdf_generator._render_html(sample_session_with_weather)
 
         # Assert
-        assert "动漫作品" in html  # Bangumi section title
+        assert "Anime Works" in html  # Bangumi section title
         assert "你的名字" in html  # Bangumi 1 CN title
         assert "Kimi no Na wa" in html  # Bangumi 1 JP title
         assert "天气之子" in html  # Bangumi 2 CN title
@@ -289,13 +289,13 @@ class TestPDFGeneratorTool:
         html = await pdf_generator._render_html(sample_session_with_weather)
 
         # Assert
-        # Chinese content
-        assert "起点" in html
-        assert "景点" in html
-        assert "分钟" in html
-        # Japanese/English content
-        assert "Station" in html
-        assert "Gyoen" in html
+        # English UI labels
+        assert "Origin:" in html
+        assert "Cumulative:" in html
+        assert "min" in html
+        # Chinese/Japanese content from data fields
+        assert "新宿御苑" in html
+        assert "Shinjuku Gyoen" in html
 
     @pytest.mark.asyncio
     async def test_weather_information_displayed(
@@ -306,7 +306,7 @@ class TestPDFGeneratorTool:
         html = await pdf_generator._render_html(sample_session_with_weather)
 
         # Assert
-        assert "天气信息" in html or "Weather" in html
+        assert "Weather information" in html or "Weather" in html
         assert "晴天" in html  # Condition
         assert "适合出行" in html  # Recommendation
 

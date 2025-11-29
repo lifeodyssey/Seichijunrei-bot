@@ -1,36 +1,36 @@
 """ADK LlmAgent for extracting bangumi name and location from user query.
 
-This agent is configured-only (no custom Python logic) and will be
-assembled into a SequentialAgent workflow in later stages.
+This agent uses Pydantic output_schema to ensure structured JSON output that
+can be reliably accessed by downstream agents in the SequentialAgent workflow.
 """
 
 from google.adk.agents import LlmAgent
+from adk_agents.seichijunrei_bot._schemas import ExtractionResult
 
 
 extraction_agent = LlmAgent(
     name="ExtractionAgent",
     model="gemini-2.0-flash",
     instruction="""
-    你是一个信息抽取助手，负责从用户的自然语言查询中提取用于圣地巡礼规划的关键信息。
+    You are an information extraction assistant. Your goal is to extract
+    structured fields from the user's natural language query that are needed
+    for planning an anime pilgrimage (seichijunrei) route.
 
-    任务：
-    1. 提取番剧名称（动漫作品名）。去掉《》、「」等符号，只保留作品名称本身。
-    2. 提取用户当前所在的位置或希望出发的车站/地区名称。
+    Tasks:
+    1. Extract the anime (bangumi) title.
+       - Remove decorative brackets such as 《》 or 「」 and keep only the core title.
+       - Recognize common abbreviations or nicknames and map them to full titles
+         when it is clearly implied.
+    2. Extract the user's current location or the station/area name they want
+       to depart from.
+       - Support queries in multiple languages (for example, English, Japanese, Chinese).
 
-    要求：
-    - 如果无法确定其中某一项，用 null 表示。
-    - 不要编造不存在的信息。
-    - 始终返回严格的 JSON，字段名必须固定为 bangumi_name 和 location。
-
-    用户查询来自session state中的 user_query 字段：
-    {user_query}
-
-    请返回形如：
-    {{
-      "bangumi_name": "...",
-      "location": "..."
-    }}
+    Requirements:
+    - If you cannot confidently determine a field, set that field to null.
+    - Do not invent information that is not present in the user query.
+    - The user's query will be provided to you as the message content.
+      Extract fields only from that content.
     """,
+    output_schema=ExtractionResult,
     output_key="extraction_result",
 )
-

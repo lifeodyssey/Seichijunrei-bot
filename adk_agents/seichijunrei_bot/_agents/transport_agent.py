@@ -77,11 +77,10 @@ class TransportAgent(BaseAgent):
             total_duration_min=optimized_route.total_duration_minutes,
         )
 
+        # BaseAgent Event content must be None or specific ADK types, not arbitrary dict
         yield Event(
             author=self.name,
-            content={
-                "final_plan_summary": state["final_plan"]["summary"],
-            },
+            content=None,
             actions=EventActions(escalate=True),
         )
 

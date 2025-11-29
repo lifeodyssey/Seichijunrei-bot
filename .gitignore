@@ -60,6 +60,7 @@ test_results.json
 *.evalset.json
 
 # Secrets
+.env
 .env.local
 .env.production
 secrets/

@@ -1,390 +1,248 @@
-# Seichijunrei Bot - 圣地巡礼机器人
+# Seichijunrei Bot
 
-> 智能动漫圣地巡礼旅行助手 | An Intelligent Anime Pilgrimage Travel Assistant
+> An intelligent anime pilgrimage travel assistant built on Google ADK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Track: Concierge Agents](https://img.shields.io/badge/Track-Concierge%20Agents-blue)](https://www.kaggle.com/competitions/google-adk-capstone)
 
-## 项目简介
+---
 
-Seichijunrei Bot 是一个基于多Agent架构的智能旅行助手，专为动漫爱好者的圣地巡礼之旅而设计。只需输入你所在的地铁站，机器人就能：
+## Overview
 
-- 搜索周边所有动漫圣地
-- 根据你看过的番剧智能过滤
-- 生成不走回头路的最优访问路线
-- 提供详细的交通方式建议
-- 查询实时天气和营业时间
-- 导出可打印的巡礼手册PDF和交互式地图
+Seichijunrei Bot is a multi‑agent travel assistant that helps anime fans plan
+“pilgrimage” trips to real‑world locations featured in anime.
 
-### 为什么需要这个项目？
+Given a starting station (for example “Shinjuku Station” or “Akihabara
+Station”), the agent:
 
-动漫圣地巡礼（Anime Pilgrimage）是一种新兴的旅行方式，爱好者前往动画作品的真实取景地"朝圣"。然而：
+- finds nearby anime pilgrimage spots from open data sources
+- filters locations based on the shows the user cares about
+- builds a route that avoids back‑tracking
+- suggests transport options between each stop
+- optionally fetches weather information
+- generates an interactive HTML map and a printable PDF guide.
 
-- 📍 圣地信息分散在各个网站和社区，难以系统性获取
-- 🗺️ 多个圣地之间的路线规划复杂，容易走回头路
-- 🚇 不清楚使用哪种交通方式最优（步行？地铁？公交？）
-- ⏰ 天气、营业时间等实时信息难以获取
-
-Seichijunrei Bot 通过智能多Agent系统解决了这些痛点，让你的圣地巡礼之旅更加高效和愉快。
+The project is implemented as a deterministic multi‑step workflow using the
+Google Agent Development Kit (ADK).
 
 ---
 
-## 主要功能
+## Key Features
 
-### 核心功能
+- **Smart location search**
+  - Resolve a station name to coordinates.
+  - Find all nearby anime works and their key locations.
 
-#### 1. 智能地理搜索
-输入地铁站名称（如"新宿站"、"秋叶原站"），自动搜索周边5km范围内的所有动漫圣地。
+- **Personalised filtering**
+  - Let the user choose which shows they have watched.
+  - Keep only pilgrimage points from those works to avoid noise.
 
-```
-输入: "我在新宿站"
-输出: 找到20部番剧，共150个圣地
-      - 你的名字 (15个圣地, 距离1.2km)
-      - 天气之子 (12个圣地, 距离0.8km)
-      - 言叶之庭 (8个圣地, 距离2.5km)
-      ...
-```
+- **Route optimisation**
+  - Greedy nearest‑neighbour route from the origin station.
+  - Produces an ordered list of locations with cumulative distance and time.
 
-#### 2. 个性化过滤
-询问你看过哪些番剧，只保留你感兴趣的圣地，避免信息过载。
+- **Transport suggestions**
+  - Uses Google Maps Directions API.
+  - Recommends walking, subway or bus between each pair of points.
 
-#### 3. 路线优化
-使用贪心最近邻算法，自动计算不走回头路的最优访问顺序。
+- **Weather and opening‑hours aware**
+  - Integrates a weather API for basic conditions and recommendations.
+  - Designed to plug in POI / opening‑hours enrichment.
 
-```
-生成路线: 新宿站 → 代代木公园 → 新宿御苑 → 都厅大厦 → ...
-总距离: 6.5km
-预计时间: 3小时30分钟
-```
-
-### 增强功能
-
-#### 4. 交通方式建议
-为每两个相邻圣地之间提供最优交通方式：
-
-```
-第1站 → 第2站:
-  - 方式: 步行
-  - 距离: 1.2km
-  - 时间: 15分钟
-  - 路线: 沿甲州街道向南，经过新宿三丁目...
-
-第2站 → 第3站:
-  - 方式: 地铁（东京地铁丸之内线）
-  - 站数: 3站
-  - 时间: 12分钟
-  - 费用: 200日元
-```
-
-#### 5. 实时天气查询
-查询巡礼当天的天气预报，提供出行建议。
-
-```
-天气: 晴天
-温度: 12°C - 18°C
-降水概率: 10%
-建议: 天气适宜，建议穿着舒适，携带轻便外套
-```
-
-#### 6. 营业时间查询
-查询圣地的开放时间和门票信息，优化访问顺序。
-
-```
-新宿御苑:
-  - 开放时间: 9:00-16:30
-  - 休息日: 周一
-  - 门票: 500日元
-  - 注意: 最后入园时间16:00
-```
-
-#### 7. 地图可视化
-生成交互式HTML地图，标注所有圣地和路线。
-
-- 不同颜色区分不同番剧
-- 点击标记查看详细信息和动画截图
-- 导出Google Maps导航链接，一键开始导航
-
-#### 8. PDF手册导出
-生成可打印的巡礼手册，包含：
-
-- 路线总览地图
-- 每个圣地的详细信息（名称、番剧、场景截图、交通方式）
-- 天气和注意事项
+- **Rich outputs**
+  - Interactive Folium map for exploration.
+  - Jinja2‑based PDF guide with itinerary, route summary and anime sections.
 
 ---
 
-## 项目架构
+## Architecture (High Level)
 
-### ADK Sequential Agent 架构 (2024年11月完成迁移)
+The core workflow is implemented as a `SequentialAgent` with embedded
+`ParallelAgent` stages:
 
-本项目采用 Google ADK (Agent Development Kit) 框架，使用 **SequentialAgent** 和 **ParallelAgent** 实现确定性的工作流编排。
+1. **ExtractionAgent (LlmAgent)**
+   - Extracts `bangumi_name` and `location` from the user query.
+2. **ParallelSearch (ParallelAgent)**
+   - **BangumiSearchAgent (LlmAgent)** – searches Bangumi for the best‑matching work.
+   - **LocationSearchAgent (LlmAgent)** – resolves the station name to coordinates.
+3. **PointsSearchAgent (BaseAgent)**
+   - Calls the Anitabi API to fetch pilgrimage points for the selected work.
+4. **PointsFilteringAgent (BaseAgent)**
+   - Reduces the list to a manageable set for routing (for example, top N).
+5. **ParallelEnrichment (ParallelAgent)**
+   - **WeatherAgent (BaseAgent)** – fetches weather summary (optional).
+   - **RouteOptimizationAgent (BaseAgent)** – builds the core route.
+6. **TransportAgent (BaseAgent)**
+   - Adds transport details and prepares the final plan.
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Root Agent (LlmAgent)                              │
-│  - Model: gemini-2.0-flash                          │
-│  - 理解用户意图，调用工作流                             │
-│  - Tool: plan_pilgrimage_workflow                  │
-└────────────────┬────────────────────────────────────┘
-                 │
-┌────────────────▼────────────────────────────────────┐
-│  PilgrimageWorkflow (SequentialAgent)               │
-│                                                     │
-│  Step 1: ExtractionAgent (LlmAgent)                │
-│         提取番剧名 + 位置                              │
-│         ↓                                           │
-│  Step 2: ParallelSearch (ParallelAgent)            │
-│         ├─ BangumiSearchAgent (LlmAgent)           │
-│         └─ LocationSearchAgent (LlmAgent)          │
-│         ↓                                           │
-│  Step 3: PointsSearchAgent (BaseAgent)             │
-│         获取圣地点位                                   │
-│         ↓                                           │
-│  Step 4: ParallelEnrichment (ParallelAgent)        │
-│         ├─ WeatherAgent (BaseAgent)                │
-│         └─ RouteOptimizationAgent (BaseAgent)      │
-│         ↓                                           │
-│  Step 5: TransportAgent (BaseAgent)                │
-│         优化交通方式，输出 final_plan                  │
-└─────────────────────────────────────────────────────┘
-```
+The ADK workflow is defined in
+`adk_agents/seichijunrei_bot/_workflows/pilgrimage_workflow.py` and used as the
+root agent entry point (`adk_agents/seichijunrei_bot/agent.py`).
 
-**ADK Agents (7个):**
+Supporting layers:
 
-| Agent | 类型 | 职责 | 状态通信 |
-|-------|------|------|---------|
-| ExtractionAgent | LlmAgent | 从用户查询提取番剧名和位置 | output_key: "extraction_result" |
-| BangumiSearchAgent | LlmAgent | 搜索番剧，返回 bangumi_id | ctx.session.state |
-| LocationSearchAgent | LlmAgent | 搜索车站坐标 | ctx.session.state |
-| PointsSearchAgent | BaseAgent | 获取圣地点位并过滤 | ctx.session.state["points"] |
-| WeatherAgent | BaseAgent | 查询天气信息 | ctx.session.state["weather"] |
-| RouteOptimizationAgent | BaseAgent | Google Maps 路线优化 | ctx.session.state["route"] |
-| TransportAgent | BaseAgent | 优化交通方式 | ctx.session.state["final_plan"] |
+- **Domain layer** (`domain/`) – Pydantic entities such as `Bangumi`,
+  `Point`, `Route`, `PilgrimageSession`.
+- **Infrastructure** (`clients/`, `services/`) – HTTP clients, retry, cache,
+  session management.
+- **Tools** (`tools/`) – map and PDF generator tools exposed to the agent.
+- **Templates** (`templates/`) – HTML/PDF layouts for user‑facing outputs.
 
-**FunctionTools (6个):**
-
-| Tool | 功能 |
-|------|------|
-| plan_pilgrimage_workflow | 主工作流入口 (AgentTool) |
-| search_bangumi_subjects | 搜索番剧 (Bangumi API) |
-| get_anitabi_points | 获取圣地点位 (Anitabi API) |
-| search_anitabi_bangumi_near_station | 搜索车站附近番剧 |
-| generate_map | 生成交互式HTML地图 |
-| generate_pdf | 生成PDF巡礼手册 |
-
-### 技术栈
-
-- **编程语言**: Python 3.13+
-- **Agent框架**: Google ADK (Agent Development Kit)
-- **LLM模型**: Gemini 2.0 Flash
-- **数据源**:
-  - [Anitabi API](https://github.com/anitabi/anitabi.cn-document) - 圣地数据
-  - [Bangumi API](https://bangumi.github.io/api/) - 番剧信息
-  - Google Maps APIs - 地图、导航、地理编码
-  - Open-Meteo API - 天气信息
-- **部署平台**: Google Agent Engine
-- **包管理**: uv (现代化 Python 包管理)
+For a deeper architectural write‑up, see `docs/architecture.md`.
 
 ---
 
-## 使用场景
+## Getting Started
 
-### 场景1：东京一日游
+For full local setup instructions (API keys, environment variables, health
+checks), see `LOCAL_SETUP.md`. The section below provides the short version.
 
-**用户**: "我明天在新宿站，想去看新海诚作品的圣地"
+### Prerequisites
 
-**系统流程**:
-1. SearchAgent搜索新宿周边5km的圣地
-2. 找到《你的名字》、《天气之子》、《言叶之庭》等作品的45个圣地
-3. FilterAgent询问用户看过哪些，用户选择全部
-4. RouteAgent计算最优路线：新宿站 → 新宿御苑 → 代代木 → 四谷 → ...
-5. TransportAgent提供交通建议（步行/地铁组合）
-6. WeatherAgent查询明天天气：晴天，18°C
-7. 生成地图和PDF手册
+- Python 3.11+
+- [`uv`](https://github.com/astral-sh/uv) for dependency management
+- A Google Cloud project with:
+  - **Google Maps Geocoding API**
+  - **Google Maps Directions API**
+- Optional: an OpenWeatherMap API key for weather.
 
-**输出**:
-- 一条优化的6.5km路线，预计3.5小时完成
-- 交互式地图和可打印PDF手册
-- Google Maps一键导航链接
+### 1. Install dependencies
 
-### 场景2：京都动画巡礼
-
-**用户**: "我在京都站，想去看京阿尼的作品"
-
-**系统流程**:
-1. 搜索京都周边圣地
-2. 找到《冰菓》、《紫罗兰永恒花园》、《吹响吧！上低音号》等
-3. 用户选择看过的番剧
-4. 生成跨区域的一日或两日路线
-5. 提供JR/私铁/巴士的综合交通建议
-
----
-
-## 满足课程要求
-
-本项目为 [Google ADK Capstone Project](https://www.kaggle.com/competitions/google-adk-capstone) 提交作品，选择赛道：**Concierge Agents** (个人生活助手)。
-
-### 关键概念实现
-
-项目满足以下至少3个关键概念要求：
-
-| 要求 | 实现方式 | 状态 |
-|------|---------|------|
-| **Multi-agent System** | 7个Agent（1主控+6子Agent），包含并行和顺序执行 | ✅ |
-| **Tools** | 2个Custom Tools + Google Search + Google Maps API (OpenAPI) | ✅ |
-| **Sessions & Memory** | InMemorySessionService保存用户位置、选择和路线状态 | ✅ |
-| **Observability** | 完整的logging和tracing系统 | ✅ |
-| **Gemini** (+5分) | 使用Gemini作为推理引擎 | ✅ |
-| **Agent Deployment** (+5分) | 部署到Google Agent Engine | ✅ |
-
-### 评分预期
-
-| 类别 | 满分 | 预期得分 | 说明 |
-|------|------|---------|------|
-| Category 1: The Pitch | 30 | 25-30 | 清晰的问题定义和解决方案 |
-| Category 2: Implementation | 70 | 60-70 | 完整的multi-agent架构和工具集成 |
-| Bonus: Gemini + Deployment | 20 | 10 | 使用Gemini和云端部署 |
-| **总计** | **100** | **95-100** | - |
-
----
-
-## 项目结构
-
+```bash
+uv sync
 ```
+
+### 2. Configure environment
+
+Create and edit a `.env` file in the project root:
+
+```bash
+cp .env.example .env
+```
+
+At minimum you must set:
+
+```env
+GOOGLE_MAPS_API_KEY=your_google_maps_key
+ANITABI_API_URL=https://api.anitabi.cn/bangumi
+APP_ENV=development
+LOG_LEVEL=INFO
+DEBUG=false
+```
+
+To enable weather:
+
+```env
+WEATHER_API_KEY=your_openweathermap_key
+WEATHER_API_URL=https://api.openweathermap.org/data/2.5
+```
+
+Run a simple health check:
+
+```bash
+make health
+```
+
+### 3. Run the ADK web UI (recommended)
+
+```bash
+make dev      # first time only – installs tools
+make web      # start ADK Web UI
+```
+
+or directly:
+
+```bash
+uv run adk web adk_agents
+```
+
+Then open the URL printed in the terminal (typically
+`http://localhost:8000`) and chat with the agent.
+
+### 4. Run from the command line
+
+```bash
+make run
+# or
+uv run adk run adk_agents/seichijunrei_bot
+```
+
+---
+
+## Project Structure
+
+```text
 Seichijunrei/
-├── README.md                    # 项目说明（本文件）
-├── SPEC.md                      # 技术规格文档
-├── pyproject.toml               # uv 项目配置
-├── Makefile                     # 便捷命令
+├── README.md                # Overview (this file)
+├── LOCAL_SETUP.md           # Local setup and troubleshooting
+├── LOGGING_GUIDE.md         # Structured logging guide
+├── SPEC.md                  # Technical specification for the capstone
+├── requirement.md           # Kaggle capstone requirements (reference)
+├── pyproject.toml           # Project configuration
+├── Makefile                 # Convenience commands
 │
-├── adk_agents/                  # ADK Agent 定义
+├── adk_agents/
 │   └── seichijunrei_bot/
-│       ├── agent.py             # Root agent 入口
-│       ├── tools.py             # FunctionTool 定义
-│       ├── agents/              # 7个 ADK agents
-│       │   ├── extraction_agent.py
-│       │   ├── bangumi_search_agent.py
-│       │   ├── location_search_agent.py
-│       │   ├── points_search_agent.py
-│       │   ├── weather_agent.py
-│       │   ├── route_agent.py
-│       │   └── transport_agent.py
-│       └── workflows/
-│           └── pilgrimage_workflow.py  # SequentialAgent 工作流
+│       ├── agent.py         # ADK root agent entry point
+│       ├── _agents/         # LlmAgent and BaseAgent implementations
+│       ├── _schemas.py      # Pydantic schemas for ADK agents
+│       ├── _workflows/      # Sequential/Parallel ADK workflows
+│       └── tools.py         # ADK FunctionTool definitions
 │
-├── clients/                     # API 客户端（纯HTTP）
-│   ├── anitabi.py               # Anitabi API
-│   ├── bangumi.py               # Bangumi API
-│   ├── google_maps.py           # Google Maps API
-│   └── weather.py               # Weather API
+├── clients/                 # HTTP API clients
+│   ├── anitabi.py           # Anitabi pilgrimage data client
+│   ├── bangumi.py           # Bangumi subject search client
+│   ├── google_maps.py       # Google Maps Directions/Geocoding
+│   └── weather.py           # Weather API client
 │
-├── domain/                      # 领域模型
-│   ├── entities.py              # Pydantic 实体
-│   └── llm_schemas.py           # LLM 输入输出 Schema
+├── domain/
+│   ├── entities.py          # Core domain models
+│   └── llm_schemas.py       # Legacy LLM schemas (for reference)
 │
-├── services/                    # 基础设施服务
-│   ├── cache.py                 # 缓存层
-│   ├── retry.py                 # 重试装饰器
-│   └── session.py               # Session 管理
+├── services/
+│   ├── cache.py             # In‑memory cache helpers
+│   ├── retry.py             # Retry and rate‑limiting utilities
+│   └── session.py           # Session state management
 │
-├── tools/                       # 自定义工具
-│   ├── map_generator.py         # Folium 地图生成
-│   └── pdf_generator.py         # Playwright PDF生成
+├── tools/
+│   ├── base.py              # BaseTool wrapper
+│   ├── map_generator.py     # Folium map generation
+│   └── pdf_generator.py     # Playwright PDF generation
 │
-├── utils/                       # 工具函数
-│   ├── logger.py                # Structlog 日志
-│   └── llm.py                   # LLM 辅助函数
+├── templates/               # Jinja2 templates
+│   ├── pdf_main.html
+│   ├── pdf_itinerary.html
+│   ├── pdf_bangumi.html
+│   └── pdf_cover.html
 │
-├── templates/                   # Jinja2 模板
-│   ├── map.html
-│   └── pdf.html
+├── tests/
+│   ├── unit/                # Unit tests (entities, clients, tools, agents)
+│   └── integration/         # Integration tests (optional, API‑dependent)
 │
-├── tests/                       # 测试套件
-│   ├── unit/                    # 单元测试 (288个)
-│   └── integration/             # 集成测试
-│
-└── docs/                        # 文档
-    ├── api/                     # API 文档
-    ├── architecture.md          # 架构说明
-    └── archive/                 # 历史文档
+└── docs/
+    ├── architecture.md      # Detailed architecture notes
+    └── adk_migration_spec.md# ADK migration spec and state shape
 ```
 
 ---
 
-## 开发计划
+## Specs, Requirements and Logging
 
-### 阶段1: MVP (最小可行产品) - 预计8-10小时
-
-- [ ] 基础Agent架构搭建
-- [ ] Anitabi API集成
-- [ ] 地理搜索功能
-- [ ] 用户偏好过滤
-- [ ] 基础路线规划（最近邻算法）
-- [ ] 简单的输出展示
-
-### 阶段2: 增强功能 - 预计8-10小时
-
-- [ ] Google Maps集成（交通方式建议）
-- [ ] 天气查询
-- [ ] 营业时间查询
-- [ ] 地图可视化
-- [ ] PDF生成
-
-### 阶段3: 优化和部署 - 预计3-5小时
-
-- [ ] 错误处理完善
-- [ ] Logging和Observability
-- [ ] 云端部署（Google Agent Engine）
-- [ ] 文档和注释完善
-
-**总开发时间估算**: 19-25小时（建议分3-4天完成）
-**截止日期**: 2025年12月1日
+- `SPEC.md` – full technical spec used for the Google ADK capstone submission.
+- `requirement.md` – copied Kaggle competition requirements and rubric.
+- `LOGGING_GUIDE.md` – how to configure and interpret the structured logs.
 
 ---
 
-## 数据来源
+## License and Credits
 
-本项目使用以下开放API：
+This project is released under the MIT License (see `LICENSE`).
 
-- **[Anitabi](https://anitabi.cn)**: 动漫圣地数据库，提供番剧和圣地的详细信息
-  - API文档: https://github.com/anitabi/anitabi.cn-document/blob/main/api.md
-  - 特点: 免费、无需认证、包含场景截图
+Data sources and services:
 
-- **Google Maps Platform**: 地图、导航、地理编码服务
-  - Geocoding API: 地铁站名 → GPS坐标
-  - Directions API: 路线规划和交通建议
-  - Maps JavaScript API: 地图可视化
+- **Anitabi** – open anime pilgrimage database.
+- **Google Maps Platform** – geocoding, directions and routing.
+- **OpenWeatherMap** (or compatible API) – weather information.
 
-- **天气服务**: 实时天气查询（API待定）
-
----
-
-## 贡献指南
-
-本项目为课程项目，暂不接受外部贡献。如有问题或建议，欢迎提Issue。
-
----
-
-## 许可证
-
-MIT License - 详见 LICENSE 文件
-
----
-
-## 联系方式
-
-- **作者**: Zhenjia Zhou
-- **项目**: Google ADK Capstone Project
-- **赛道**: Concierge Agents
-
----
-
-## 致谢
-
-- 感谢 [Anitabi](https://anitabi.cn) 提供的动漫圣地数据库
-- 感谢 Google ADK Course 提供的学习资源
-- 感谢所有动漫作品的创作者，让圣地巡礼成为可能
-
----
-
-**最后更新**: 2025-11-20
+This repository was built as a Google ADK Capstone Project in the
+“Concierge Agents” track.

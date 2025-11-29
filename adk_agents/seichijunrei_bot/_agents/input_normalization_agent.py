@@ -33,36 +33,50 @@ class InputNormalizationAgent(BaseAgent):
         self.logger = get_logger(__name__)
 
     async def _run_async_impl(self, ctx):  # type: ignore[override]
-        """Normalize input parameters to user_query field.
+        """Capture incoming message and save to session state as user_query.
+
+        AgentTool passes the request parameter as a user message, not in state.
+        This agent extracts the message text and saves it to state for downstream agents.
 
         Args:
-            ctx: Invocation context containing session state
+            ctx: Invocation context containing session and messages
 
         Yields:
             Event with confirmation message
         """
         state: Dict[str, Any] = ctx.session.state
 
-        # Search for possible parameter names in order of preference
-        user_query = (
-            state.get("user_query") or
-            state.get("request") or
-            state.get("query") or
-            state.get("user_input") or
-            state.get("input") or
-            state.get("prompt")
-        )
+        # First, check if user_query already exists in state (from a previous agent)
+        user_query = state.get("user_query")
+
+        # If not in state, extract from the most recent user message
+        if not user_query:
+            # Get the latest user message from history
+            # AgentTool sends the request parameter as a user message
+            messages = ctx.session.messages or []
+            for msg in reversed(messages):
+                if msg.role == "user" and msg.parts:
+                    # Extract text from the first text part
+                    for part in msg.parts:
+                        if hasattr(part, 'text') and part.text:
+                            user_query = part.text
+                            break
+                    if user_query:
+                        break
 
         if not user_query:
-            # Log available keys for debugging
+            # Log available keys and message info for debugging
             available_keys = list(state.keys())
+            msg_count = len(ctx.session.messages or [])
             error_msg = (
-                f"错误：未找到用户查询。"
-                f"session.state 中可用的键: {available_keys}"
+                "Error: no user query found. "
+                f"session.state keys: {available_keys}, "
+                f"message count: {msg_count}"
             )
             self.logger.error(
-                "No user query found in session state",
-                available_keys=available_keys
+                "No user query found in messages or state",
+                available_keys=available_keys,
+                message_count=msg_count
             )
             yield Event(
                 action=EventActions.AGENT_TEXT,
@@ -70,17 +84,17 @@ class InputNormalizationAgent(BaseAgent):
             )
             return
 
-        # Standardize to user_query
+        # Save to state for downstream agents
         state["user_query"] = user_query
 
         self.logger.info(
-            "Normalized user query",
+            "Captured user query from message",
             user_query=user_query
         )
 
         yield Event(
             action=EventActions.AGENT_TEXT,
-            content=f"✓ 已规范化用户查询: {user_query}"
+            content=f"✓ Captured user query: {user_query}"
         )
 
 

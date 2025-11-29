@@ -28,9 +28,15 @@ class WeatherAgent(BaseAgent):
     async def _run_async_impl(self, ctx):  # type: ignore[override]
         state: Dict[str, Any] = ctx.session.state
 
-        coordinates_data = state.get("user_coordinates")
+        # With Pydantic output_schema, location_result is now a properly typed dict
+        location_result = state.get("location_result", {})
+        coordinates_data = location_result.get("user_coordinates")
+
         if not isinstance(coordinates_data, dict):
-            raise ValueError("WeatherAgent requires user_coordinates dict in session.state")
+            raise ValueError(
+                f"WeatherAgent requires user_coordinates dict. "
+                f"Got: {type(coordinates_data).__name__}"
+            )
 
         try:
             coordinates = Coordinates(**coordinates_data)

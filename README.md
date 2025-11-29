@@ -1,6 +1,6 @@
 # Seichijunrei Bot
 
-> An intelligent anime pilgrimage travel assistant built on Google ADK
+> An intelligent 聖地巡礼 (seichijunrei) travel assistant built on Google ADK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Track: Concierge Agents](https://img.shields.io/badge/Track-Concierge%20Agents-blue)](https://www.kaggle.com/competitions/google-adk-capstone)
@@ -9,49 +9,43 @@
 
 ## Overview
 
-Seichijunrei Bot is a multi‑agent travel assistant that helps anime fans plan
-“pilgrimage” trips to real‑world locations featured in anime.
+Seichijunrei Bot is a conversational AI agent that helps anime fans plan
+聖地巡礼 (seichijunrei) trips to real‑world locations featured in anime.
 
-Given a starting station (for example “Shinjuku Station” or “Akihabara
-Station”), the agent:
+Through a natural 2-stage dialogue, the agent:
 
-- finds nearby anime pilgrimage spots from open data sources
-- filters locations based on the shows the user cares about
-- builds a route that avoids back‑tracking
-- suggests transport options between each stop
-- optionally fetches weather information
-- generates an interactive HTML map and a printable PDF guide.
+- **Stage 1**: Searches for anime by name and presents top candidates
+- **Stage 2**: Intelligently selects 8-12 optimal 聖地巡礼 points using LLM reasoning
+- Considers geography, plot importance, and accessibility
+- Generates optimized routes with transport suggestions
+- Creates interactive HTML maps and printable PDF guides
 
-The project is implemented as a deterministic multi‑step workflow using the
-Google Agent Development Kit (ADK).
+The project is implemented using the Google Agent Development Kit (ADK) with
+Gemini 2.0 Flash for intelligent decision-making.
 
 ---
 
 ## Key Features
 
-- **Smart location search**
-  - Resolve a station name to coordinates.
-  - Find all nearby anime works and their key locations.
+- **Conversational Search**
+  - Natural language anime search via Bangumi API
+  - Presents 3-5 top candidates with summaries
+  - User-friendly selection through dialogue
 
-- **Personalised filtering**
-  - Let the user choose which shows they have watched.
-  - Keep only pilgrimage points from those works to avoid noise.
+- **LLM-Driven Intelligent Selection**
+  - Gemini 2.0 Flash intelligently selects 8-12 optimal 聖地巡礼 points
+  - Considers geographic clustering, plot importance, and accessibility
+  - Balances route feasibility with content coverage
 
-- **Route optimisation**
-  - Greedy nearest‑neighbour route from the origin station.
-  - Produces an ordered list of locations with cumulative distance and time.
+- **Automated Route Planning**
+  - Narrative-order based route optimization
+  - Estimates duration and distance
+  - Transport recommendations
 
-- **Transport suggestions**
-  - Uses Google Maps Directions API.
-  - Recommends walking, subway or bus between each pair of points.
-
-- **Weather and opening‑hours aware**
-  - Integrates a weather API for basic conditions and recommendations.
-  - Designed to plug in POI / opening‑hours enrichment.
-
-- **Rich outputs**
-  - Interactive Folium map for exploration.
-  - Jinja2‑based PDF guide with itinerary, route summary and anime sections.
+- **Rich Outputs**
+  - Interactive Folium maps with color-coded markers
+  - Professional PDF guides with itinerary and anime details
+  - Session-based state management for multi-turn conversations
 
 ---
 
@@ -108,17 +102,12 @@ The core workflow is implemented as a **2-stage conversational flow** using ADK 
 
 ## Getting Started
 
-For full local setup instructions (API keys, environment variables, health
-checks), see `LOCAL_SETUP.md`. The section below provides the short version.
-
 ### Prerequisites
 
 - Python 3.11+
 - [`uv`](https://github.com/astral-sh/uv) for dependency management
-- A Google Cloud project with:
-  - **Google Maps Geocoding API**
-  - **Google Maps Directions API**
-- Optional: an OpenWeatherMap API key for weather.
+- Google API Key with Gemini API access
+- No additional API keys required (Bangumi and Anitabi APIs are public)
 
 ### 1. Install dependencies
 
@@ -128,33 +117,20 @@ uv sync
 
 ### 2. Configure environment
 
-Create and edit a `.env` file in the project root:
+Create a `.env` file in the project root:
 
 ```bash
 cp .env.example .env
 ```
 
-At minimum you must set:
+Required configuration:
 
 ```env
-GOOGLE_MAPS_API_KEY=your_google_maps_key
-ANITABI_API_URL=https://api.anitabi.cn/bangumi
+GEMINI_API_KEY=your_gemini_api_key
+ANITABI_API_URL=https://api.anitabi.cn
 APP_ENV=development
 LOG_LEVEL=INFO
 DEBUG=false
-```
-
-To enable weather:
-
-```env
-WEATHER_API_KEY=your_openweathermap_key
-WEATHER_API_URL=https://api.openweathermap.org/data/2.5
-```
-
-Run a simple health check:
-
-```bash
-make health
 ```
 
 ### 3. Run the ADK web UI (recommended)
@@ -188,10 +164,7 @@ uv run adk run adk_agents/seichijunrei_bot
 ```text
 Seichijunrei/
 ├── README.md                # Overview (this file)
-├── LOCAL_SETUP.md           # Local setup and troubleshooting
-├── LOGGING_GUIDE.md         # Structured logging guide
-├── SPEC.md                  # Technical specification for the capstone
-├── requirement.md           # Kaggle capstone requirements (reference)
+├── .env.example             # Environment template
 ├── pyproject.toml           # Project configuration
 ├── Makefile                 # Convenience commands
 │
@@ -213,17 +186,19 @@ Seichijunrei/
 │       │   ├── bangumi_search_workflow.py
 │       │   └── route_planning_workflow.py
 │       └── tools/                # Custom function tools
+│           ├── __init__.py       # Bangumi/Anitabi API tools
 │           └── route_planning.py # Route optimization tool
 │
 ├── clients/                 # HTTP API clients
-│   ├── anitabi.py           # Anitabi pilgrimage data client
+│   ├── anitabi.py           # Anitabi 聖地巡礼 data client
 │   ├── bangumi.py           # Bangumi subject search client
-│   ├── google_maps.py       # Google Maps Directions/Geocoding
-│   └── weather.py           # Weather API client
+│   └── base.py              # Base HTTP client
 │
-├── domain/
-│   ├── entities.py          # Core domain models
-│   └── llm_schemas.py       # Legacy LLM schemas (for reference)
+├── config/                  # Configuration management
+│   └── settings.py          # Pydantic settings
+│
+├── domain/                  # Domain models
+│   └── entities.py          # Core Pydantic entities
 │
 ├── services/
 │   ├── cache.py             # In‑memory cache helpers
@@ -231,45 +206,36 @@ Seichijunrei/
 │   ├── session.py           # Session state management
 │   └── simple_route_planner.py  # Route planning service
 │
-├── tools/
-│   ├── base.py              # BaseTool wrapper
+├── tools/                   # Map/PDF generation tools
 │   ├── map_generator.py     # Folium map generation
-│   └── pdf_generator.py     # Playwright PDF generation
+│   └── pdf_generator.py     # PDF generation
 │
-├── templates/               # Jinja2 templates
+├── utils/                   # Utilities
+│   └── logger.py            # Structured logging
+│
+├── templates/               # Jinja2 templates for PDF
 │   ├── pdf_main.html
 │   ├── pdf_itinerary.html
 │   ├── pdf_bangumi.html
 │   └── pdf_cover.html
 │
-├── tests/
-│   ├── unit/                # Unit tests (entities, clients, tools, agents)
-│   └── integration/         # Integration tests (optional, API‑dependent)
-│
-└── docs/
-    ├── architecture.md      # Detailed architecture notes
-    └── adk_migration_spec.md# ADK migration spec and state shape
+└── tests/
+    ├── unit/                # Unit tests
+    └── integration/         # Integration tests
 ```
 
 ---
 
-## Specs, Requirements and Logging
+## Data Sources and APIs
 
-- `SPEC.md` – full technical spec used for the Google ADK capstone submission.
-- `requirement.md` – copied Kaggle competition requirements and rubric.
-- `LOGGING_GUIDE.md` – how to configure and interpret the structured logs.
+- **Bangumi** (bangumi.tv) – Anime metadata and subject information
+- **Anitabi** (api.anitabi.cn) – 聖地巡礼 location database
+- **Google Gemini 2.0 Flash** – LLM for intelligent point selection and conversational AI
 
 ---
 
-## License and Credits
+## License
 
 This project is released under the MIT License (see `LICENSE`).
 
-Data sources and services:
-
-- **Anitabi** – open anime pilgrimage database.
-- **Google Maps Platform** – geocoding, directions and routing.
-- **OpenWeatherMap** (or compatible API) – weather information.
-
-This repository was built as a Google ADK Capstone Project in the
-“Concierge Agents” track.
+Built as a Google ADK Capstone Project in the "Concierge Agents" track.

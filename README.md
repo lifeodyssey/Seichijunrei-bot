@@ -244,6 +244,47 @@ Seichijunrei/
 
 ---
 
+## Deployment
+
+This agent can be deployed to **Google Vertex AI Agent Engine** for production use.
+
+### Quick Deploy via GitHub Actions
+
+The repository includes automated deployment via GitHub Actions:
+
+1. Configure Google Cloud project and service account
+2. Set GitHub Secrets (`GCP_PROJECT_ID`, `GCP_SA_KEY`)
+3. Trigger deployment workflow from GitHub Actions tab
+4. Agent deploys to Vertex AI Agent Engine in `us-central1`
+
+**📖 Full deployment guide:** See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed step-by-step instructions.
+
+### Alternative Deployment Methods
+
+**Local deployment:**
+```bash
+# Install ADK CLI
+pip install google-adk
+
+# Deploy to Agent Engine
+adk deploy agent_engine \
+  --project=YOUR_PROJECT_ID \
+  --region=us-central1 \
+  --staging_bucket=gs://YOUR_PROJECT_ID-agent-staging
+```
+
+**Cloud Run deployment:**
+```bash
+# Deploy to Cloud Run
+adk deploy cloud_run \
+  --project=YOUR_PROJECT_ID \
+  --region=us-central1
+```
+
+See [ADK Deployment Documentation](https://google.github.io/adk-docs/deploy/) for more options.
+
+---
+
 ## TODO / Roadmap
 
 The following items are planned or partially implemented and tracked here

@@ -100,4 +100,3 @@ Translation:"""
 
 # Expose as an ADK FunctionTool for use by LlmAgents.
 translate_tool = FunctionTool(translate_text)
-

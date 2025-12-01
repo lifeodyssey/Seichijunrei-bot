@@ -19,7 +19,6 @@ from domain.entities import (
     Station,
     TooManyPointsError,
     TransportInfo,
-    Weather,
 )
 
 
@@ -446,70 +445,6 @@ class TestRoute:
         assert len(groups["BG002"]) == 2  # Last 2 points
 
 
-class TestWeather:
-    """Test Weather entity."""
-
-    def test_create_weather(self):
-        """Test creating weather information."""
-        weather = Weather(
-            date="2025-11-20",
-            location="Tokyo",
-            condition="Partly Cloudy",
-            temperature_high=22,
-            temperature_low=15,
-            precipitation_chance=20,
-            wind_speed_kmh=10,
-            recommendation="Good weather for walking, bring light jacket",
-        )
-        assert weather.date == "2025-11-20"
-        assert weather.condition == "Partly Cloudy"
-        assert weather.temperature_high == 22
-        assert weather.temperature_low == 15
-        assert weather.precipitation_chance == 20
-
-    def test_temperature_range(self):
-        """Test temperature range formatting."""
-        weather = Weather(
-            date="2025-11-20",
-            location="Tokyo",
-            condition="Sunny",
-            temperature_high=25,
-            temperature_low=18,
-            precipitation_chance=0,
-            wind_speed_kmh=5,
-            recommendation="Perfect day",
-        )
-        assert weather.temperature_range == "18°C - 25°C"
-
-    def test_weather_validation(self):
-        """Test weather data validation."""
-        # Precipitation chance must be 0-100
-        with pytest.raises(ValueError):
-            Weather(
-                date="2025-11-20",
-                location="Tokyo",
-                condition="Rain",
-                temperature_high=20,
-                temperature_low=15,
-                precipitation_chance=101,
-                wind_speed_kmh=10,
-                recommendation="Test",
-            )
-
-        # Wind speed must be non-negative
-        with pytest.raises(ValueError):
-            Weather(
-                date="2025-11-20",
-                location="Tokyo",
-                condition="Windy",
-                temperature_high=20,
-                temperature_low=15,
-                precipitation_chance=10,
-                wind_speed_kmh=-5,
-                recommendation="Test",
-            )
-
-
 class TestSeichijunreiSession:
     """Test SeichijunreiSession entity."""
 
@@ -523,7 +458,6 @@ class TestSeichijunreiSession:
         assert session.nearby_bangumi == []
         assert session.points == []
         assert session.route is None
-        assert session.weather is None
         assert isinstance(session.created_at, datetime)
         assert isinstance(session.updated_at, datetime)
 

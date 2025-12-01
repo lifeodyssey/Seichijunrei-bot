@@ -10,10 +10,9 @@ flowchart TD
     classDef workflow fill:#e8f5e9,stroke:#1b5e20,stroke-width:3px
     classDef schema fill:#fff9c4,stroke:#f57f17,stroke-width:1px
 
-    Start([User Input]) --> RootAgent[Root Agent<br/>seichijunrei_bot<br/>LlmAgent]
+    Start([User Input]) --> RootAgent[Root Agent<br/>seichijunrei_bot<br/>LlmAgent<br/>Pure Router]
     RootAgent -->|No candidates| Stage1{Stage 1:<br/>Bangumi Search}
-    RootAgent -->|Has candidates,<br/>no selection| Wait[Wait for<br/>User Selection]
-    RootAgent -->|Has selection| Stage2{Stage 2:<br/>Route Planning}
+    RootAgent -->|Has candidates| Stage2{Stage 2:<br/>Route Planning<br/>Auto-triggered}
 
     Stage1 --> ExtractionAgent[ExtractionAgent<br/>LlmAgent<br/>Output: ExtractionResult]
     ExtractionAgent --> BangumiCandidates[BangumiCandidatesAgent<br/>SequentialAgent]

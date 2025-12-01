@@ -32,15 +32,13 @@ UserPres -> UserPres: Generate natural\nlanguage presentation
 UserPres --> Root: Natural language
 Root --> User: "Here are 3 anime options:\n1. Slam Dunk\n2. Tari Tari\n3. ..."
 
-== User Selection ==
+== Stage 2: Route Planning (Auto-triggered) ==
 User -> Root: "I choose number 1"
-Root -> UserSel: Execute
+Root -> UserSel: Execute (immediately)
 UserSel -> Session: Read bangumi_candidates
 UserSel -> UserSel: Parse user selection
 UserSel -> Session: Write selected_bangumi
 UserSel --> Root: UserSelectionResult
-
-== Stage 2: Route Planning ==
 Root -> PointsSearch: Execute
 PointsSearch -> PointsSearch: Call Anitabi API
 PointsSearch -> Session: Write all_points

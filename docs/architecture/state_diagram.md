@@ -17,15 +17,15 @@ stateDiagram-v2
         - bangumi_candidates
     end note
     
-    CandidatesReady --> WaitingSelection: UserPresentationAgent executed
-    note right of WaitingSelection
+    CandidatesReady --> PresentedToUser: UserPresentationAgent executed
+    note right of PresentedToUser
         User sees candidates
-        System waits for selection
+        Ready for user input
     end note
-    
-    WaitingSelection --> SelectionMade: User provides selection
-    
-    SelectionMade --> BangumiSelected: UserSelectionAgent executed
+
+    PresentedToUser --> BangumiSelected: User selection triggers UserSelectionAgent
+    note right of BangumiSelected
+        RoutePlanningWorkflow automatically triggered
     note right of BangumiSelected
         Session State:
         - extraction_result

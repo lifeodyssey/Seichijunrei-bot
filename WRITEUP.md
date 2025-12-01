@@ -124,11 +124,10 @@ Root Agent (Conditional Router with LLM)
 **1. Sequential Agent Composition**
 Both workflows use ADK's `SequentialAgent` to chain agents together. Output from one agent flows as input to the next via session state.
 
-**2. Conditional Routing**
-The root agent examines session state to decide which workflow to invoke:
-- If no `bangumi_candidates` exist → Stage 1 (search anime)
-- If candidates exist but no `selected_bangumi` → Re-present candidates
-- If selection confirmed → Stage 2 (plan route)
+**2. Automatic Workflow Routing**
+The root agent acts as a pure router, examining session state to automatically trigger workflows:
+- If no `bangumi_candidates` exist → Stage 1 (search anime and present candidates)
+- If `bangumi_candidates` exist → Stage 2 (parse selection and plan route automatically)
 
 **3. Tool/Schema Separation**
 ADK best practice: agents with `tools` shouldn't have `output_schema` (structured output). We separate concerns:
@@ -146,7 +145,7 @@ Final presentation agents have **no output_schema**—they generate free-form na
 
 ✅ **Sessions & Memory** (InMemorySessionService for multi-turn conversation state)
 
-✅ **Agent Evaluation** (gbc.evalset.json - Girls Band Cry test case with multi-turn conversation)
+✅ **Agent Evaluation** (Evaluation sets in `adk_agents/seichijunrei_bot/*.evalset.json`)
 
 ✅ **Deployment** (Vertex AI Agent Engine with auto-scaling)
 
@@ -192,21 +191,22 @@ This produces semantically meaningful routes rather than just "closest 10 points
 (I'm in Kawasaki, want to do seichijunrei for gbc)
 ```
 
-**Bot Response** (Stage 1 - Disambiguation):
+**Bot Response** (Stage 1 - Candidate Presentation):
 ```
-您好！接下来是寻找您想巡礼的动画作品的阶段。
+找到 1 部与 'gbc' 相关的动画作品，请选择：
 
-我理解您想在川崎出发，寻找《Girls Band Cry》的巡礼地点。是这样吗？
+1. **Girls Band Cry**（ガールズバンドクライ，2024-04）
+   讲述了女子乐队在川崎的成长故事。
 
-如果是的话，我会开始为您规划巡礼路线。
-```
-
-**User Confirmation**:
-```
-是的 (Yes)
+请回复数字（如 '1'）选择第一部作品。
 ```
 
-**Bot Response** (Stage 2 - Intelligent Route):
+**User Selection**:
+```
+1
+```
+
+**Bot Response** (Stage 2 - Intelligent Route, automatically triggered):
 ```
 好的！为您规划《Girls Band Cry》（ガールズバンドクライ）的圣地巡礼路线。
 从川崎出发，为您推荐以下行程：
@@ -241,7 +241,7 @@ This produces semantically meaningful routes rather than just "closest 10 points
 
 ### Evaluation
 
-We've created an evaluation set (`gbc.evalset.json`) containing real multi-turn conversations with the bot. This demonstrates:
+We've created evaluation sets (see `*.evalset.json` files) containing real multi-turn conversations with the bot. This demonstrates:
 - Handling ambiguous queries ("gbc" → "Girls Band Cry")
 - Multi-turn clarification and confirmation
 - Correct tool invocations and state transitions
@@ -283,7 +283,7 @@ Clean separation of concerns:
 **3. Testing Strategy**
 - **Unit Tests**: HTTP clients, domain models, caching, retry logic (15+ test files)
 - **Integration Tests**: Presentation agents with multilingual output
-- **Evaluation Sets**: `gbc.evalset.json` for end-to-end conversation quality
+- **Evaluation Sets**: Multiple `*.evalset.json` files for end-to-end conversation quality
 
 **4. Multilingual Support**
 - Language detection from user query (Chinese, English, Japanese)
@@ -363,7 +363,7 @@ Create evaluation sets for:
 
 - **GitHub**: https://github.com/lifeodyssey/Seichijunrei-bot
 - **Documentation**: See `README.md` for quickstart, `DEPLOYMENT.md` for deployment guide
-- **Evaluation Set**: `adk_agents/seichijunrei_bot/gbc.evalset.json`
+- **Evaluation Sets**: `adk_agents/seichijunrei_bot/` directory contains evalset files
 
 ---
 

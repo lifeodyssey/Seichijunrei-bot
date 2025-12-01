@@ -12,11 +12,11 @@
 Seichijunrei Bot is a conversational AI agent that helps anime fans plan
 聖地巡礼 (seichijunrei) trips to real‑world locations featured in anime.
 
-Through a natural 2-stage dialogue, the agent:
+Through an automatic 2-stage workflow, the agent:
 
-- **Stage 1**: Searches for anime by name and presents top candidates
-- **Stage 2**: Uses LLM reasoning to select 8-12 suitable 聖地巡礼 points
-- Asks the LLM to consider geography, story importance, and visit feasibility when choosing points
+- **Stage 1**: Searches for anime by name and presents top candidates for user selection
+- **Stage 2**: Automatically parses user's selection and uses LLM reasoning to select 8-12 suitable 聖地巡礼 points
+- Considers geography, story importance, and visit feasibility when choosing points
 - Generates simple narrative routes with rough time/distance estimates and generic transport tips
 
 The agent automatically detects the user's language (Chinese / English / Japanese)
@@ -104,7 +104,9 @@ The core workflow is implemented as a **2-stage conversational flow** using ADK 
 **State Management:**
 - Uses `InMemorySessionService` for multi-turn conversations
 - State keys flow through workflow stages
-- Root agent (`seichijunrei_bot`) routes between stages based on state
+- Root agent (`seichijunrei_bot`) automatically routes between stages based on session state:
+  - No `bangumi_candidates` → Stage 1 (search and present)
+  - Has `bangumi_candidates` → Stage 2 (parse selection and plan route)
 
 **Supporting Layers:**
 - **Domain layer** (`domain/`) – Pydantic entities: `Bangumi`, `Point`, `Route`, `SeichijunreiSession`

@@ -151,53 +151,56 @@ The system uses three types of ADK agents:
 **Example**:
 ```
 User: "我想去镰仓圣地巡礼"
-Bot: "为您找到以下与镰仓相关的动漫作品：
-     1. 灌篮高手 (スラムダンク)
-     2. TARI TARI
-     3. 青春猪头少年不会梦到兔女郎学姐
-     请选择您想要规划路线的作品（输入数字或名称）"
+Bot: "找到 3 部与 '镰仓' 相关的动画作品，请选择：
+     1. 灌篮高手 (スラムダンク，1993-10)
+     2. TARI TARI（2012-07）
+     3. 青春猪头少年不会梦到兔女郎学姐（青春ブタ野郎はバニーガール先輩の夢を見ない，2018-10）
+     请回复数字（如 '1'）选择第一部作品。"
 ```
 
 ### Stage 2: Route Planning
 
-**Trigger**: User provides selection (`selected_bangumi` in session)
+**Trigger**: User provides selection (automatically when `bangumi_candidates` exists in session)
 
 **Process**:
-1. Parse user's selection with confidence scoring
-2. Fetch ALL pilgrimage points from Anitabi API
-3. LLM selects 8-12 best points (considering feasibility and importance)
-4. Generate optimized route using SimpleRoutePlanner
-5. Present route with detailed descriptions
+1. Parse user's selection with confidence scoring (UserSelectionAgent)
+2. Fetch ALL pilgrimage points from Anitabi API (PointsSearchAgent)
+3. LLM selects 8-12 best points considering feasibility and importance (PointsSelectionAgent)
+4. Generate optimized route using SimpleRoutePlanner (RoutePlanningAgent)
+5. Present route with detailed descriptions (RoutePresentationAgent)
 
 **Output**: Natural language route description with practical information
 
 **Example**:
 ```
-Bot: "为您规划了镰仓《灌篮高手》圣地巡礼路线：
+User: "1"
+Bot: "为您规划了镰仓《灌篮高手》（スラムダンク）圣地巡礼路线：
 
-     起点：镰仓站
-     1. 镰仓高校前站 - 经典的铁道口场景
-     2. 湘南海岸 - 樱木花道练习的海滩
+     推荐顺序：
+     1. 镰仓高校前站 - 经典的铁道口场景 (第1话)
+     2. 湘南海岸 - 樱木花道练习的海滩 (第3话)
      ...
 
-     预计用时：约5小时
-     总距离：12公里"
+     预计用时：约 5.0 小时
+     预计距离：约 12 公里
+
+     交通提示：
+     利用江之电沿线游览，大部分地点步行可达。"
 ```
 
-### Conditional Routing Logic
+### Automatic Routing Logic
 
-The Root Agent uses session state to determine which stage to execute:
+The Root Agent acts as a pure router, automatically triggering workflows based on session state:
 
 ```python
 if session_state.bangumi_candidates is None:
     # Execute Stage 1: Bangumi Search
+    # → ExtractionAgent, BangumiCandidatesAgent, UserPresentationAgent
     return bangumi_search_workflow
 
-if session_state.selected_bangumi is None:
-    # Wait for user selection
-    return "Please select an anime from the candidates"
-
 # Execute Stage 2: Route Planning
+# → UserSelectionAgent parses selection automatically
+# → PointsSearchAgent, PointsSelectionAgent, RoutePlanningAgent, RoutePresentationAgent
 return route_planning_workflow
 ```
 
@@ -509,7 +512,7 @@ pytest
 pytest tests/agents/test_extraction_agent.py
 
 # Run with ADK evaluation
-adk eval --evalset gbc.evalset.json
+adk eval --evalset *.evalset.json
 ```
 
 ---

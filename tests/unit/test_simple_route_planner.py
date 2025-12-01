@@ -131,9 +131,7 @@ class TestSimpleRoutePlanner:
 
     def test_generate_plan_sorting_by_episode(self, planner, sample_points):
         """Test that points are sorted by episode and time."""
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=sample_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=sample_points)
 
         order = plan["recommended_order"]
         # Points should be ordered by (episode, time_seconds)
@@ -149,9 +147,7 @@ class TestSimpleRoutePlanner:
 
     def test_generate_plan_max_points_limit(self, planner, many_points):
         """Test that only max_points are included in the route."""
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=many_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=many_points)
 
         # Should only include max_points (10)
         assert len(plan["recommended_order"]) == 10
@@ -165,26 +161,20 @@ class TestSimpleRoutePlanner:
         """Test planner with custom max_points."""
         planner = SimpleRoutePlanner(max_points=5)
 
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=many_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=many_points)
 
         assert len(plan["recommended_order"]) == 5
 
     def test_estimate_duration_calculation(self, planner, sample_points):
         """Test duration estimation formula."""
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=sample_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=sample_points)
 
         # 4 points * 0.5 hours = 2.0 hours
         assert "2.0 hours" in plan["estimated_duration"]
 
     def test_estimate_distance_calculation(self, planner, sample_points):
         """Test distance estimation formula."""
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=sample_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=sample_points)
 
         # 4 points * 1.5 km = 6.0 km
         assert "6.0 kilometers" in plan["estimated_distance"]
@@ -222,16 +212,23 @@ class TestSimpleRoutePlanner:
 
         # Should list points with numbers
         # Note: description building prefers cn_name over name (different from recommended_order!)
-        assert "1. 须贺神社 (Episode 1)" in description or "1. Suga Shrine (Episode 1)" in description
-        assert "2. 东京站 (Episode 1)" in description or "2. Tokyo Station (Episode 1)" in description
+        assert (
+            "1. 须贺神社 (Episode 1)" in description
+            or "1. Suga Shrine (Episode 1)" in description
+        )
+        assert (
+            "2. 东京站 (Episode 1)" in description
+            or "2. Tokyo Station (Episode 1)" in description
+        )
         assert "3. Cafe la Bohème (Episode 2)" in description
-        assert "4. 国立新美术馆 (Episode 3)" in description or "4. National Art Center (Episode 3)" in description
+        assert (
+            "4. 国立新美术馆 (Episode 3)" in description
+            or "4. National Art Center (Episode 3)" in description
+        )
 
     def test_special_notes_content(self, planner, sample_points):
         """Test special notes content."""
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=sample_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=sample_points)
 
         notes = plan["special_notes"]
 
@@ -352,9 +349,7 @@ class TestSimpleRoutePlanner:
 
     def test_route_description_multiline_format(self, planner, sample_points):
         """Test that route description is properly multiline."""
-        plan = planner.generate_plan(
-            origin="Tokyo", anime="Test", points=sample_points
-        )
+        plan = planner.generate_plan(origin="Tokyo", anime="Test", points=sample_points)
 
         description = plan["route_description"]
         lines = description.split("\n")

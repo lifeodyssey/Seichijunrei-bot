@@ -298,4 +298,7 @@ class TestBangumiClient:
 
             call_args = mock_get.call_args
             # URL should be encoded
-            assert "%E3%81%91%E3%81%84%E3%81%8A%E3%82%93" in call_args[0][0] or "けいおん" in call_args[0][0]
+            assert (
+                "%E3%81%91%E3%81%84%E3%81%8A%E3%82%93" in call_args[0][0]
+                or "けいおん" in call_args[0][0]
+            )

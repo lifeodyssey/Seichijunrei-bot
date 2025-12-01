@@ -1,7 +1,9 @@
 # Seichijunrei Bot: AI-Powered Anime Location Tourism Assistant
 
 **Track**: Concierge Agents
+
 **Author**: Zhenjia Zhou
+
 **Repository**: https://github.com/lifeodyssey/Seichijunrei-bot
 
 ---
@@ -13,6 +15,7 @@
 Seichijunrei (聖地巡礼), literally "sacred place pilgrimage," is a Japanese cultural phenomenon where anime fans travel to real-world locations that appear in their favorite shows. For example, fans of *Sound! Euphonium* visit Uji City in Kyoto Prefecture to see the bridges and schools featured in the anime. This form of location-based tourism has become increasingly popular worldwide, with fans traveling from China, Southeast Asia, Europe, and the Americas to visit these iconic spots in Japan.
 
 ![Seichijunrei Example: Fans visiting the famous stairs from Your Name](https://image1.gamme.com.tw/news2/2016/04/82/qZqYpJ_ekKWcrKQ.jpg)
+
 *Example: Fans recreating iconic scenes from "Your Name" (君の名は) at Suga Shrine stairs in Tokyo*
 
 

@@ -17,7 +17,6 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.tools import FunctionTool
 
 from config import get_settings
-from domain.entities import SeichijunreiSession
 from utils.logger import get_logger, setup_logging
 
 from ._workflows.bangumi_search_workflow import bangumi_search_workflow

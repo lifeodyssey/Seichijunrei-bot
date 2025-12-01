@@ -15,10 +15,13 @@ Seichijunrei Bot is a conversational AI agent that helps anime fans plan
 Through a natural 2-stage dialogue, the agent:
 
 - **Stage 1**: Searches for anime by name and presents top candidates
-- **Stage 2**: Intelligently selects 8-12 optimal 聖地巡礼 points using LLM reasoning
-- Considers geography, plot importance, and accessibility
-- Generates optimized routes with transport suggestions
-- Creates interactive HTML maps and printable PDF guides
+- **Stage 2**: Uses LLM reasoning to select 8-12 suitable 聖地巡礼 points
+- Asks the LLM to consider geography, story importance, and visit feasibility when choosing points
+- Generates simple narrative routes with rough time/distance estimates and generic transport tips
+
+The agent automatically detects the user's language (Chinese / English / Japanese)
+and presents results and routes in that language, while keeping Japanese titles
+as the canonical reference.
 
 The project is implemented using the Google Agent Development Kit (ADK) with
 Gemini 2.0 Flash for intelligent decision-making.
@@ -34,17 +37,21 @@ Gemini 2.0 Flash for intelligent decision-making.
 
 - **LLM-Driven Intelligent Selection**
   - Gemini 2.0 Flash intelligently selects 8-12 optimal 聖地巡礼 points
-  - Considers geographic clustering, plot importance, and accessibility
+  - Configured to consider geographic clustering, plot importance, and visit feasibility
   - Balances route feasibility with content coverage
 
 - **Automated Route Planning**
-  - Narrative-order based route optimization
-  - Estimates duration and distance
-  - Transport recommendations
+  - Simple narrative-order-based route suggestions via a custom tool
+  - Rough estimates for duration and distance
+  - Generic transport tips based on the starting location
+
+- **Multilingual UX**
+  - Detects user language from the initial query (`zh-CN`, `en`, `ja`)
+  - Stage 1 and Stage 2 responses are generated in the user's language
+  - Unified title format: **user-language title (Japanese original[, air date])**
+  - Uses a dedicated Gemini-powered translation tool for anime titles
 
 - **Rich Outputs**
-  - Interactive Folium maps with color-coded markers
-  - Professional PDF guides with itinerary and anime details
   - Session-based state management for multi-turn conversations
 
 ---
@@ -55,7 +62,7 @@ The core workflow is implemented as a **2-stage conversational flow** using ADK 
 
 ### Stage 1: Bangumi Search Workflow
 1. **ExtractionAgent (LlmAgent)**
-   - Extracts `bangumi_name` and `location` from user query
+   - Extracts `bangumi_name`, `location`, and `user_language` from user query
    - Output: `extraction_result` → session state
 
 2. **BangumiCandidatesAgent (SequentialAgent)**
@@ -64,9 +71,10 @@ The core workflow is implemented as a **2-stage conversational flow** using ADK 
    - Output: `bangumi_candidates` → session state
 
 3. **UserPresentationAgent (LlmAgent)**
-   - Generates natural language presentation of candidates
-   - No output_schema (conversational response)
-   - User selects their preferred anime
+   - Generates multilingual, natural language presentation of candidates
+   - Formats titles as **user-language title (Japanese original, air date)**
+   - Uses a translation tool for Chinese titles when missing
+   - No output_schema (conversational response); user selects their preferred anime
 
 ### Stage 2: Route Planning Workflow
 4. **UserSelectionAgent (LlmAgent)**
@@ -87,13 +95,19 @@ The core workflow is implemented as a **2-stage conversational flow** using ADK 
    - Generates final route with transport suggestions
    - Output: `route_plan` → session state
 
+8. **RoutePresentationAgent (LlmAgent)**
+   - Reads `route_plan`, `selected_bangumi`, and `extraction_result.user_language`
+   - Presents a structured, user-language route summary (overview, ordered list,
+     time/distance, transport tips, special notes)
+   - Uses the same unified title format as Stage 1
+
 **State Management:**
 - Uses `InMemorySessionService` for multi-turn conversations
 - State keys flow through workflow stages
 - Root agent (`seichijunrei_bot`) routes between stages based on state
 
 **Supporting Layers:**
-- **Domain layer** (`domain/`) – Pydantic entities: `Bangumi`, `Point`, `Route`, `PilgrimageSession`
+- **Domain layer** (`domain/`) – Pydantic entities: `Bangumi`, `Point`, `Route`, `SeichijunreiSession`
 - **Infrastructure** (`clients/`, `services/`) – HTTP clients, retry, cache, session management
 - **Tools** (`tools/`) – Map and PDF generator tools exposed to agent
 - **Templates** (`templates/`) – HTML/PDF layouts for user-facing outputs
@@ -171,7 +185,7 @@ Seichijunrei/
 ├── adk_agents/
 │   └── seichijunrei_bot/
 │       ├── agent.py              # ADK root agent entry point
-│       ├── _agents/              # 9 agent implementations
+│       ├── _agents/              # ADK agent implementations
 │       │   ├── extraction_agent.py
 │       │   ├── bangumi_candidates_agent.py
 │       │   ├── bangumi_search_agent.py
@@ -180,14 +194,15 @@ Seichijunrei/
 │       │   ├── points_search_agent.py
 │       │   ├── points_selection_agent.py
 │       │   ├── route_planning_agent.py
-│       │   └── input_normalization_agent.py
+│       │   └── route_presentation_agent.py
 │       ├── _schemas.py           # Pydantic schemas for ADK agents
 │       ├── _workflows/           # 2 workflow orchestrations
 │       │   ├── bangumi_search_workflow.py
 │       │   └── route_planning_workflow.py
 │       └── tools/                # Custom function tools
-│           ├── __init__.py       # Bangumi/Anitabi API tools
-│           └── route_planning.py # Route optimization tool
+│           ├── __init__.py       # ADK FunctionTools export
+│           ├── route_planning.py # Route optimization tool (SimpleRoutePlanner)
+│           └── translation.py    # Gemini-based title translation tool
 │
 ├── clients/                 # HTTP API clients
 │   ├── anitabi.py           # Anitabi 聖地巡礼 data client
@@ -206,18 +221,13 @@ Seichijunrei/
 │   ├── session.py           # Session state management
 │   └── simple_route_planner.py  # Route planning service
 │
-├── tools/                   # Map/PDF generation tools
-│   ├── map_generator.py     # Folium map generation
-│   └── pdf_generator.py     # PDF generation
+├── tools/                   # (reserved for future non-ADK utilities)
+│   └── __init__.py
 │
 ├── utils/                   # Utilities
 │   └── logger.py            # Structured logging
 │
-├── templates/               # Jinja2 templates for PDF
-│   ├── pdf_main.html
-│   ├── pdf_itinerary.html
-│   ├── pdf_bangumi.html
-│   └── pdf_cover.html
+├── templates/               # (currently unused; reserved for future HTML/PDF outputs)
 │
 └── tests/
     ├── unit/                # Unit tests
@@ -231,6 +241,38 @@ Seichijunrei/
 - **Bangumi** (bangumi.tv) – Anime metadata and subject information
 - **Anitabi** (api.anitabi.cn) – 聖地巡礼 location database
 - **Google Gemini 2.0 Flash** – LLM for intelligent point selection and conversational AI
+
+---
+
+## TODO / Roadmap
+
+The following items are planned or partially implemented and tracked here
+instead of being documented as completed features:
+
+- **Google Maps integration**
+  - Use the existing Google Maps client more deeply to fetch real route/directions
+    data and surface Google Maps links or snippets alongside the LLM-planned route.
+
+- **PDF / document export**
+  - Reintroduce a lightweight, template-based PDF or document generator that can
+    turn a planned route into a printable guide, without bloating the core agent.
+
+- **Weather integration**
+  - Add an optional weather lookup step that annotates the planned day-trip with
+    basic forecast info and suggestions (e.g., bring umbrella, temperature range).
+
+- **Deeper multilingual support**
+  - Extend the current zh-CN/en/ja chat experience to additional outputs
+    (for example, future map or document generation features).
+
+- **Route planning enhancements**
+  - Replace the heuristic `SimpleRoutePlanner` with a more realistic planner
+    that leverages transit/walking directions APIs while keeping ADK tool
+    boundaries clean.
+
+- **Persistent session storage**
+  - Add an optional Redis/Cloud-backed `SessionService` for long-lived user
+    sessions beyond the current in-memory implementation.
 
 ---
 

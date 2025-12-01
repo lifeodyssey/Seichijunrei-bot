@@ -12,7 +12,7 @@ from domain.entities import (
     Coordinates,
     InvalidStationError,
     NoBangumiFoundError,
-    PilgrimageSession,
+    SeichijunreiSession,
     Point,
     Route,
     RouteSegment,
@@ -510,12 +510,12 @@ class TestWeather:
             )
 
 
-class TestPilgrimageSession:
-    """Test PilgrimageSession entity."""
+class TestSeichijunreiSession:
+    """Test SeichijunreiSession entity."""
 
     def test_create_session(self):
         """Test creating a pilgrimage session."""
-        session = PilgrimageSession(session_id="test-session-123")
+        session = SeichijunreiSession(session_id="test-session-123")
         assert session.session_id == "test-session-123"
         assert session.station is None
         assert session.selected_bangumi_ids == []
@@ -542,7 +542,7 @@ class TestPilgrimageSession:
             points_count=10,
         )
 
-        session = PilgrimageSession(
+        session = SeichijunreiSession(
             session_id="test-session-456",
             station=station,
             selected_bangumi_ids=["BG001", "BG002"],
@@ -557,7 +557,7 @@ class TestPilgrimageSession:
 
     def test_session_update_timestamp(self):
         """Test updating session timestamp."""
-        session = PilgrimageSession(session_id="test-session-789")
+        session = SeichijunreiSession(session_id="test-session-789")
         original_updated = session.updated_at
 
         # Small delay to ensure timestamp changes
@@ -571,15 +571,15 @@ class TestPilgrimageSession:
     def test_search_radius_validation(self):
         """Test search radius validation."""
         # Valid ranges
-        PilgrimageSession(session_id="test", search_radius_km=1.0)
-        PilgrimageSession(session_id="test", search_radius_km=20.0)
+        SeichijunreiSession(session_id="test", search_radius_km=1.0)
+        SeichijunreiSession(session_id="test", search_radius_km=20.0)
 
         # Invalid ranges
         with pytest.raises(ValueError):
-            PilgrimageSession(session_id="test", search_radius_km=0.5)
+            SeichijunreiSession(session_id="test", search_radius_km=0.5)
 
         with pytest.raises(ValueError):
-            PilgrimageSession(session_id="test", search_radius_km=21.0)
+            SeichijunreiSession(session_id="test", search_radius_km=21.0)
 
 
 class TestDomainExceptions:

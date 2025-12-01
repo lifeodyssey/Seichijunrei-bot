@@ -208,7 +208,7 @@ class Weather(BaseModel):
         return f"{self.temperature_low}°C - {self.temperature_high}°C"
 
 
-class PilgrimageSession(BaseModel):
+class SeichijunreiSession(BaseModel):
     """User session state."""
 
     session_id: str

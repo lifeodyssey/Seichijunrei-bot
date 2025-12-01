@@ -97,15 +97,13 @@ def deploy(args):
     print("Creating ADK application...")
     app = agent_engines.AdkApp(agent=root_agent, enable_tracing=True)
 
-    # Define requirements
+    # Define requirements (runtime dependencies for the deployed agent)
     requirements = [
         "google-cloud-aiplatform[adk,agent_engines]>=1.111",
         "pydantic>=2.0.0",
         "aiohttp>=3.9.0",
         "httpx>=0.25.0",
         "googlemaps>=4.10.0",
-        "folium>=0.15.0",
-        "jinja2>=3.1.0",
         "structlog>=23.0.0",
     ]
 
@@ -146,7 +144,7 @@ async def verify_deployment(remote_app):
         async for event in remote_app.async_stream_query(
             user_id="deploy-test",
             session_id=session["id"],
-            message="Hello, can you help me plan a pilgrimage?",
+            message="Hello, can you help me plan a seichijunrei?",
         ):
             response.append(event)
 

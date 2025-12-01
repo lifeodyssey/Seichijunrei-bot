@@ -24,19 +24,19 @@ Seichijunrei (聖地巡礼), literally "sacred place pilgrimage," is a Japanese 
 
 Planning a seichijunrei trip is surprisingly complex and time-consuming:
 
-1. **Information Fragmentation**: Seichijunrei location data is scattered across multiple Japanese websites, fan wikis, and social media posts. There's no centralized, reliable database that's easily accessible to international fans.
+1. **Information Fragmentation**: Location data is scattered across Japanese websites, fan wikis, and social media with no centralized database accessible to international fans.
 
-2. **Language Barriers**: Most seichijunrei resources are in Japanese only. International fans struggle to find anime by their localized titles (e.g., searching for "Sound! Euphonium" vs "響け！ユーフォニアム"), understand location descriptions, and navigate Japanese mapping services.
+2. **Language Barriers**: Resources are Japanese-only. Fans struggle to search by localized titles (e.g., "Sound! Euphonium" vs "響け！ユーフォニアム") and navigate Japanese services.
 
-3. **Information Overload**: Popular anime can have 50-200+ documented locations across entire regions. How do you decide which spots are worth visiting? Which ones fit into a one-day trip? Which locations are accessible to the public vs. private property?
+3. **Information Overload**: Popular anime have 50-200+ locations. Which spots are worth visiting? Which fit a one-day trip? Which are publicly accessible?
 
-4. **Route Optimization**: Even after identifying interesting locations, travelers face a complex optimization problem: what's the best visiting order considering geographic clustering, transportation networks, opening hours, and narrative flow (visiting locations in the order they appear in the anime)?
+4. **Route Optimization**: Travelers must optimize visiting order considering geography, transportation, hours, and narrative flow.
 
-5. **Manual Research Time**: Enthusiast fans report spending 10-20 hours researching and planning a single-day seichijunrei itinerary manually.
+5. **Manual Research**: Fans spend 10-20 hours planning a single-day itinerary.
 
 ### Why This Matters
 
-As anime becomes a global cultural phenomenon, making Japanese location tourism accessible to international fans bridges cultural gaps and supports regional economies in Japan. Automating the planning process democratizes this experience, allowing more fans to engage with the stories they love in meaningful, real-world ways.
+As anime becomes global, making Japanese location tourism accessible bridges cultural gaps and supports regional economies. Automating planning democratizes this experience for international fans.
 
 ---
 
@@ -47,21 +47,10 @@ As anime becomes a global cultural phenomenon, making Japanese location tourism 
 Seichijunrei trip planning is a perfect use case for AI agents because it requires:
 
 **1. Conversational Intelligence**
-Users often describe their intent ambiguously: "I want to visit gbc locations near Kawasaki." The system needs to:
-- Understand "gbc" means "Girls Band Cry" (not "Great British Cooking" or other interpretations)
-- Clarify with the user if multiple anime match
-- Handle multilingual queries (Chinese, English, Japanese)
-
-This requires **natural language understanding and multi-turn dialogue** that agents excel at.
+Users describe intent ambiguously ("visit gbc locations near Kawasaki"). The system must understand abbreviations, clarify ambiguous matches, and handle multilingual queries. This requires **natural language understanding and multi-turn dialogue** that agents excel at.
 
 **2. Complex Decision-Making**
-Given 50+ potential locations, the system must intelligently select 8-12 optimal spots considering:
-- Geographic feasibility (can you visit them in one day?)
-- Plot importance (iconic scenes vs. background shots)
-- Location accessibility (public vs. private spaces)
-- Transportation logistics (walkable clusters vs. train-hopping)
-
-Traditional rule-based systems would require hundreds of hardcoded heuristics. **LLM-powered agents can reason** about these trade-offs holistically using natural language instructions.
+Given 50+ locations, the system must select 8-12 optimal spots considering geography, plot importance, accessibility, and transportation. **LLM-powered agents can reason** about these trade-offs holistically versus hundreds of hardcoded rules.
 
 **3. Multi-Stage Workflow**
 The process naturally divides into sequential stages:
@@ -78,13 +67,6 @@ The system must remember:
 
 **Session management** is critical for maintaining conversation context across multiple turns.
 
-### Why Not Simpler Alternatives?
-
-- **Single LLM Call**: Cannot handle complex multi-turn clarification or modular tool integration
-- **Traditional Web Service**: Lacks natural language understanding and intelligent point selection
-- **RAG System Alone**: Cannot orchestrate multi-stage workflows or maintain conversational state
-
-Agents provide the right abstraction layer for this problem.
 
 ---
 
@@ -170,15 +152,6 @@ points_selection_result (LLM-selected 8-12 optimal points)
 route_plan (optimized visiting order + descriptions)
 ```
 
-### Intelligent Point Selection with LLM
-
-Unlike distance-based filtering, we use **Gemini 2.0 Flash** to reason about point selection:
-
-**Prompt Example**:
-"Given these 50 locations for Girls Band Cry, select 8-12 optimal points considering: (1) geographic clustering near Kawasaki Station, (2) episode importance in the narrative, (3) public accessibility, (4) one-day trip feasibility."
-
-This produces semantically meaningful routes rather than just "closest 10 points."
-
 ---
 
 ## Demo
@@ -239,14 +212,6 @@ This produces semantically meaningful routes rather than just "closest 10 points
 
 **Visual Demo**: See attached screenshot for full conversation interface.
 
-### Evaluation
-
-We've created evaluation sets (see `*.evalset.json` files) containing real multi-turn conversations with the bot. This demonstrates:
-- Handling ambiguous queries ("gbc" → "Girls Band Cry")
-- Multi-turn clarification and confirmation
-- Correct tool invocations and state transitions
-- Quality of final route outputs
-
 ---
 
 ## The Build
@@ -292,28 +257,13 @@ Clean separation of concerns:
 
 ### Deployment: Vertex AI Agent Engine
 
-**GitHub Actions CI/CD**:
-- **Platform**: Google Vertex AI Agent Engine (us-central1 region)
-- **Workflow**: `.github/workflows/deploy.yml` (manual trigger via workflow_dispatch)
-- **Environments**: staging / production (selectable at deploy time)
-- **Command**:
-  ```bash
-  adk deploy agent_engine \
-    --project=$GCP_PROJECT_ID \
-    --region=us-central1 \
-    --staging_bucket=gs://$GCP_PROJECT_ID-agent-staging \
-    --display_name=seichijunrei-bot-{env} \
-    adk_agents
-  ```
-- **Configuration**: Uses ADK default settings (auto-scaling, resource limits)
+**Deployment to Vertex AI Agent Engine**:
+- Platform: Google Vertex AI (us-central1)
+- CI/CD: GitHub Actions with manual workflow dispatch
+- Environments: staging / production
+- Configuration: ADK default settings with auto-scaling
 
-**Deployment Process**:
-1. Set up GCP project with required APIs and service account
-2. Configure GitHub repository secrets (`GCP_PROJECT_ID`, `GCP_SA_KEY`)
-3. Navigate to GitHub Actions → "Deploy to Agent Engine" workflow
-4. Click "Run workflow" → Select environment → Deploy
-
-See `DEPLOYMENT.md` for full step-by-step deployment guide.
+Full deployment guide available in `DEPLOYMENT.md`.
 
 ---
 
@@ -349,12 +299,6 @@ Upgrade from in-memory to cloud-backed storage (Redis/Cloud Storage):
 - User reviews and tips for each location
 - Photo uploads (user-contributed images)
 - Difficulty ratings (accessibility, crowding levels)
-
-**6. Expanded Evaluation**
-Create evaluation sets for:
-- Top 20 most-searched anime series
-- Multi-city routes (e.g., Tokyo + Kyoto in one trip)
-- Edge cases (anime with no locations found, ambiguous queries)
 
 ---
 
